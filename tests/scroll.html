@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datastar Scroll Plugin - Documentation & Demo</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/open-props">
+    <link rel="stylesheet" href="https://unpkg.com/open-props/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <script type="module">
+        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
+        import ScrollPlugin from '../dist/min/scroll.min.js';
+        import PersistPlugin from '../dist/min/persist.min.js';
+        
+        load(ScrollPlugin, PersistPlugin);
+        apply();
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+        });
+    </script>
+
+    <style>
+        :root {
+            --background: hsl(0, 0%, 100%);
+            --foreground: hsl(224, 71%, 4%);
+            --muted: hsl(220, 14%, 96%);
+            --muted-foreground: hsl(220, 9%, 46%);
+            --border: hsl(220, 13%, 91%);
+            --primary: hsl(262, 83%, 58%);
+            --primary-foreground: hsl(210, 40%, 98%);
+            --radius: 0.5rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: hsl(224, 71%, 4%);
+                --foreground: hsl(213, 31%, 91%);
+                --muted: hsl(223, 47%, 11%);
+                --muted-foreground: hsl(215, 16%, 65%);
+                --border: hsl(216, 34%, 17%);
+            }
+        }
+
+        * {
+            border-color: var(--border);
+        }
+
+        body {
+            font-family: var(--font-neo-grotesque);
+            letter-spacing: var(--letter-spacing-2);
+            background: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: var(--size-lg);
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--muted);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .code {
+            background: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            overflow-x: auto;
+        }
+
+        .code pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .code code {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+        }
+
+        .code pre code.hljs {
+            padding: 0;
+            background: transparent;
+        }
+
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--muted);
+            z-index: 1000;
+        }
+
+        .scroll-progress-bar {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.1s;
+        }
+
+        .status-bar {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-width: 200px;
+        }
+
+        .scroll-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            margin: 2rem 0;
+            padding: 4rem 2rem;
+            transition: all 0.3s;
+        }
+
+        .scroll-section:nth-child(odd) {
+            background: var(--muted);
+        }
+
+        .scroll-section:nth-child(even) {
+            background: var(--background);
+            border: 1px solid var(--border);
+        }
+
+        .scroll-section-content {
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .scroll-section-content h3 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .scroll-section-content p {
+            font-size: 1.125rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.6s;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .velocity-indicator {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .velocity-slow {
+            background: hsl(120, 50%, 90%);
+            color: hsl(120, 50%, 30%);
+        }
+
+        .velocity-medium {
+            background: hsl(40, 90%, 90%);
+            color: hsl(40, 90%, 30%);
+        }
+
+        .velocity-fast {
+            background: hsl(0, 70%, 90%);
+            color: hsl(0, 70%, 30%);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 2rem 0;
+            }
+
+            .status-bar {
+                top: auto;
+                bottom: 1rem;
+                right: 1rem;
+                left: 1rem;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body data-scroll>
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress">
+        <div class="scroll-progress-bar" data-style-width="`${$scroll_page_progress}%`"></div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div data-text="`Position: ${$scroll_y}px`"></div>
+        <div>
+            Direction: <span data-text="$scroll_direction"></span>
+            <span class="velocity-indicator" 
+                  data-class-velocity-slow="$scroll_velocity < 500"
+                  data-class-velocity-medium="$scroll_velocity >= 500 && $scroll_velocity < 1500"
+                  data-class-velocity-fast="$scroll_velocity >= 1500"
+                  data-text="$scroll_velocity"></span>
+        </div>
+        <div data-text="`Progress: ${$scroll_page_progress}%`"></div>
+        <div data-text="`Top: ${$scroll_is_top ? 'Yes' : 'No'}`"></div>
+        <div data-text="`Bottom: ${$scroll_is_bottom ? 'Yes' : 'No'}`"></div>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <h1>data-scroll</h1>
+            <p>Advanced scroll tracking with velocity, direction, and visibility</p>
+        </div>
+
+        <!-- Installation -->
+        <section class="section">
+            <h2>Installation</h2>
+            <div class="code">
+                <pre><code class="language-javascript">&lt;script type="module"&gt;
+import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
+import ScrollPlugin from 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/scroll.min.js';
+
+load(ScrollPlugin);
+apply();
+&lt;/script&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Global Scroll Tracking -->
+        <section class="section">
+            <h2>Global Scroll Tracking</h2>
+            <p>Track scroll position, velocity, and direction automatically</p>
+
+            <div class="code">
+                <pre><code class="language-html">&lt;!-- Add to body or any element --&gt;
+&lt;body data-scroll&gt;
+
+&lt;!-- Progress bar --&gt;
+&lt;div style="width: 100%"&gt;
+    &lt;div data-style-width="`${$scroll_page_progress}%`"&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Scroll info --&gt;
+&lt;div data-text="`Position: ${$scroll_y}px`"&gt;&lt;/div&gt;
+&lt;div data-text="`Direction: ${$scroll_direction}`"&gt;&lt;/div&gt;
+&lt;div data-text="`Velocity: ${$scroll_velocity}`"&gt;&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scroll Sections with Visibility Tracking -->
+    <div class="scroll-section fade-in" 
+         data-scroll 
+         data-class-visible="$scroll_visible_percent > 50">
+        <div class="scroll-section-content">
+            <h3>Section 1</h3>
+            <p data-text="`Visible: ${$scroll_visible_percent}%`"></p>
+            <p>This section fades in when 50% visible</p>
+        </div>
+    </div>
+
+    <div class="scroll-section fade-in" 
+         data-scroll 
+         data-class-visible="$scroll_visible_percent > 50">
+        <div class="scroll-section-content">
+            <h3>Section 2</h3>
+            <p data-text="`Visible: ${$scroll_visible_percent}%`"></p>
+            <p>Scroll tracking works per-element</p>
+        </div>
+    </div>
+
+    <div class="scroll-section fade-in" 
+         data-scroll 
+         data-class-visible="$scroll_visible_percent > 50">
+        <div class="scroll-section-content">
+            <h3>Section 3</h3>
+            <p data-text="`Visible: ${$scroll_visible_percent}%`"></p>
+            <p>Each section tracks independently</p>
+        </div>
+    </div>
+
+    <div class="scroll-section fade-in" 
+         data-scroll 
+         data-class-visible="$scroll_visible_percent > 50">
+        <div class="scroll-section-content">
+            <h3>Section 4</h3>
+            <p data-text="`Visible: ${$scroll_visible_percent}%`"></p>
+            <p>Keep scrolling to see more</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- API Reference -->
+        <section class="section">
+            <h2>API Reference</h2>
+
+            <h3>Global Signals</h3>
+            <div class="code">
+                <pre><code>$scroll_x              - Number: Horizontal scroll position
+$scroll_y              - Number: Vertical scroll position
+$scroll_direction      - String: 'up', 'down', or 'none'
+$scroll_velocity       - Number: Scroll speed (px/s)
+$scroll_delta          - Number: Change since last update
+$scroll_page_progress  - Number: Page scroll progress (0-100%)
+$scroll_is_top         - Boolean: At top of page
+$scroll_is_bottom      - Boolean: At bottom of page</code></pre>
+            </div>
+
+            <h3>Element-Specific Signals</h3>
+            <div class="code">
+                <pre><code>$scroll_visible        - Boolean: Element in viewport
+$scroll_visible_percent - Number: Visible percentage (0-100%)
+$scroll_progress       - Number: Element scroll progress
+$scroll_element_top    - Number: Element top position
+$scroll_element_bottom - Number: Element bottom position</code></pre>
+            </div>
+
+            <h3>Smooth Scrolling</h3>
+            <div class="code">
+                <pre><code class="language-html">&lt;!-- Add smooth modifier for interpolated values --&gt;
+&lt;div data-scroll__smooth&gt;
+    &lt;!-- Smoothed signals available:
+         $scroll_y_smoothed
+         $scroll_velocity_smoothed
+    --&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+
+            <h3>Throttling</h3>
+            <div class="code">
+                <pre><code class="language-html">&lt;!-- Adjust update frequency --&gt;
+&lt;div data-scroll__throttle.100&gt;&lt;/div&gt;  &lt;!-- Every 100ms --&gt;
+&lt;div data-scroll__throttle.16&gt;&lt;/div&gt;   &lt;!-- 60 FPS --&gt;
+&lt;div data-scroll&gt;&lt;/div&gt;                &lt;!-- Default: 100ms --&gt;</code></pre>
+            </div>
+
+            <h3>Common Use Cases</h3>
+            <div class="code">
+                <pre><code class="language-html">&lt;!-- Progress bar --&gt;
+&lt;div data-style-width="`${$scroll_page_progress}%`"&gt;&lt;/div&gt;
+
+&lt;!-- Fade in on scroll --&gt;
+&lt;div data-scroll 
+     data-class-visible="$scroll_visible_percent > 50"&gt;&lt;/div&gt;
+
+&lt;!-- Parallax effect --&gt;
+&lt;div data-scroll
+     data-style-transform="`translateY(${$scroll_progress * 0.5}px)`"&gt;&lt;/div&gt;
+
+&lt;!-- Sticky header --&gt;
+&lt;header data-scroll
+        data-class-sticky="$scroll_y > 100"&gt;&lt;/header&gt;
+
+&lt;!-- Back to top button --&gt;
+&lt;button data-scroll
+        data-show="$scroll_y > 500"&gt;Back to Top&lt;/button&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="margin-top: 4rem; padding: 2rem 0;">
+            <p>Built for <a href="https://data-star.dev">Datastar</a> •
+            <a href="https://github.com/ndendic/data-satellites">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
+
+

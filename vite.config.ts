@@ -7,6 +7,12 @@ export default defineConfig(({ mode }) => ({
         'anchor': './src/anchor.ts',
         'persist': './src/persist.ts',
         'throttle': './src/throttle.ts',
+        'drag': './src/drag.ts',
+        'canvas': './src/canvas.ts',
+        'split': './src/split.ts',
+        'scroll': './src/scroll.ts',
+        'resize': './src/resize.ts',
+        'smooth-scroll': './src/smooth-scroll.ts',
         'Index': './src/Index.ts'
       },
       formats: ['es'],

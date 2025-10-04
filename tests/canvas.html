@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datastar Canvas Plugin - Documentation & Demo</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/open-props">
+    <link rel="stylesheet" href="https://unpkg.com/open-props/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <script type="module">
+        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
+        import CanvasPlugin from '../dist/min/canvas.min.js';
+        import DragPlugin from '../dist/min/drag.min.js';
+        import PersistPlugin from '../dist/min/persist.min.js';
+        
+        CanvasPlugin.setConfig({
+            signal: 'canvas',
+            enablePan: true,
+            enableZoom: true,
+            minZoom: 0.1,
+            maxZoom: 10,
+            touchEnabled: true,
+            contextMenuEnabled: true,
+            spacebarPan: true,
+            middleClickPan: true,
+            enableGrid: true,
+            gridSize: 100,
+            gridColor: '#e0e0e0',
+            minorGridSize: 20,
+            minorGridColor: '#f0f0f0'
+        });
+        
+        DragPlugin.setConfig({
+            signal: 'drag',
+            mode: 'freeform'
+        });
+        
+        load(CanvasPlugin, DragPlugin, PersistPlugin);
+        apply();
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+        });
+    </script>
+
+    <style>
+        :root {
+            --background: hsl(0, 0%, 100%);
+            --foreground: hsl(224, 71%, 4%);
+            --muted: hsl(220, 14%, 96%);
+            --muted-foreground: hsl(220, 9%, 46%);
+            --border: hsl(220, 13%, 91%);
+            --primary: hsl(262, 83%, 58%);
+            --primary-foreground: hsl(210, 40%, 98%);
+            --radius: 0.5rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: hsl(224, 71%, 4%);
+                --foreground: hsl(213, 31%, 91%);
+                --muted: hsl(223, 47%, 11%);
+                --muted-foreground: hsl(215, 16%, 65%);
+                --border: hsl(216, 34%, 17%);
+            }
+        }
+
+        * {
+            border-color: var(--border);
+        }
+
+        body {
+            font-family: var(--font-neo-grotesque);
+            letter-spacing: var(--letter-spacing-2);
+            background: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: var(--size-lg);
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--muted);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0.25rem;
+        }
+
+        .btn:hover {
+            background: hsl(262, 83%, 50%);
+        }
+
+        .code {
+            background: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            overflow-x: auto;
+        }
+
+        .code pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .code code {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+        }
+
+        .code pre code.hljs {
+            padding: 0;
+            background: transparent;
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 600px;
+            position: relative;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        [data-canvas-viewport] {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        [data-canvas-container] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: 0 0;
+        }
+
+        .canvas-node {
+            position: absolute;
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-radius: var(--radius);
+            padding: 1rem;
+            cursor: move;
+            user-select: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 150px;
+        }
+
+        .canvas-node:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        }
+
+        .canvas-node.is-dragging {
+            opacity: 0.9;
+        }
+
+        .canvas-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 100;
+        }
+
+        .status-display {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .feature-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 2rem 0;
+            }
+
+            .canvas-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>data-canvas</h1>
+            <p>Infinite canvas with pan, zoom, grid, and touch support</p>
+        </div>
+
+        <!-- Installation -->
+        <section class="section">
+            <h2>Installation</h2>
+            <div class="code">
+                <pre><code class="language-javascript">&lt;script type="module"&gt;
+import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
+import CanvasPlugin from 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/canvas.min.js';
+
+CanvasPlugin.setConfig({
+    signal: 'canvas',
+    enablePan: true,
+    enableZoom: true,
+    minZoom: 0.1,
+    maxZoom: 10,
+    enableGrid: true
+});
+
+load(CanvasPlugin);
+apply();
+&lt;/script&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Interactive Demo -->
+        <section class="section">
+            <h2>Interactive Canvas</h2>
+            <p>Pan with drag, zoom with scroll wheel, spacebar to pan, right-click for context menu</p>
+
+            <div class="canvas-container">
+                <div data-canvas-viewport data-onCanvas="true">
+                    <div data-canvas-container data-draggable>
+                        <div id="node-1" class="canvas-node" data-draggable style="left: 100px; top: 100px;">
+                            <strong>Node 1</strong><br>
+                            Drag me on canvas
+                        </div>
+                        <div id="node-2" class="canvas-node" data-draggable style="left: 300px; top: 200px;">
+                            <strong>Node 2</strong><br>
+                            Drag me too
+                        </div>
+                        <div id="node-3" class="canvas-node" data-draggable style="left: 500px; top: 150px;">
+                            <strong>Node 3</strong><br>
+                            Move me around
+                        </div>
+                    </div>
+                </div>
+
+                <div class="canvas-controls">
+                    <button class="btn" data-on-click="$canvas_zoom_in()">Zoom In</button>
+                    <button class="btn" data-on-click="$canvas_zoom_out()">Zoom Out</button>
+                    <button class="btn" data-on-click="$canvas_reset_view()">Reset</button>
+                </div>
+            </div>
+
+            <div class="status-display">
+                <div data-text="`Pan: (${$canvas_pan_x?.toFixed(0) || 0}, ${$canvas_pan_y?.toFixed(0) || 0})`"></div>
+                <div data-text="`Zoom: ${($canvas_zoom * 100)?.toFixed(0) || 100}%`"></div>
+                <div data-text="`Right-click: (${$canvas_context_menu_x?.toFixed(0) || 0}, ${$canvas_context_menu_y?.toFixed(0) || 0})`"></div>
+            </div>
+
+            <div class="code">
+                <pre><code class="language-html">&lt;div data-canvas-viewport data-onCanvas="true"&gt;
+    &lt;div data-canvas-container&gt;
+        &lt;div class="node" style="left: 100px; top: 100px;"&gt;
+            Node content
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Controls --&gt;
+&lt;button data-on-click="$canvas_zoom_in()"&gt;Zoom In&lt;/button&gt;
+&lt;button data-on-click="$canvas_zoom_out()"&gt;Zoom Out&lt;/button&gt;
+&lt;button data-on-click="$canvas_reset_view()"&gt;Reset&lt;/button&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="section">
+            <h2>Features</h2>
+            <div class="grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🖱️</div>
+                    <h3>Pan & Zoom</h3>
+                    <p>Smooth panning with drag and zooming with mouse wheel</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Touch Support</h3>
+                    <p>Pinch to zoom and drag to pan on touch devices</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⌨️</div>
+                    <h3>Keyboard Shortcuts</h3>
+                    <p>Spacebar to pan, Ctrl+/- to zoom, Ctrl+0 to reset</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📐</div>
+                    <h3>Grid System</h3>
+                    <p>Optional grid with major and minor lines</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Reference -->
+        <section class="section">
+            <h2>API Reference</h2>
+
+            <h3>Configuration</h3>
+            <div class="code">
+                <pre><code class="language-javascript">CanvasPlugin.setConfig({
+    signal: 'canvas',              // Signal prefix
+    enablePan: true,               // Enable panning
+    enableZoom: true,              // Enable zooming
+    minZoom: 0.1,                  // Minimum zoom level
+    maxZoom: 10,                   // Maximum zoom level
+    touchEnabled: true,            // Touch/pinch support
+    contextMenuEnabled: true,      // Right-click menu
+    spacebarPan: true,             // Spacebar + drag to pan
+    middleClickPan: true,          // Middle mouse to pan
+    enableGrid: true,              // Show grid
+    gridSize: 100,                 // Major grid size (px)
+    gridColor: '#e0e0e0',          // Major grid color
+    minorGridSize: 20,             // Minor grid size (px)
+    minorGridColor: '#f0f0f0'      // Minor grid color
+});</code></pre>
+            </div>
+
+            <h3>Signals Created</h3>
+            <div class="code">
+                <pre><code>$canvas_pan_x              - Number: X pan offset
+$canvas_pan_y              - Number: Y pan offset
+$canvas_zoom               - Number: Zoom level (1.0 = 100%)
+$canvas_reset_view         - Function: Reset to default
+$canvas_zoom_in            - Function: Zoom in
+$canvas_zoom_out           - Function: Zoom out
+$canvas_context_menu_x     - Number: Right-click X (canvas coords)
+$canvas_context_menu_y     - Number: Right-click Y (canvas coords)
+$canvas_context_menu_screen_x  - Number: Right-click X (screen coords)
+$canvas_context_menu_screen_y  - Number: Right-click Y (screen coords)</code></pre>
+            </div>
+
+            <h3>Attributes</h3>
+            <div class="code">
+                <pre><code class="language-html">&lt;!-- Viewport container --&gt;
+&lt;div data-canvas-viewport data-onCanvas="true"&gt;
+    &lt;!-- Canvas container (receives transform) --&gt;
+    &lt;div data-canvas-container&gt;
+        &lt;!-- Your canvas content here --&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+
+            <h3>Keyboard Shortcuts</h3>
+            <div class="code">
+                <pre><code>Space + Drag       - Pan the canvas
+Mouse Wheel        - Zoom in/out
+Middle Click + Drag - Pan the canvas
+Ctrl/Cmd + +       - Zoom in
+Ctrl/Cmd + -       - Zoom out
+Ctrl/Cmd + 0       - Reset view
+Right Click        - Context menu (updates signals)</code></pre>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>Built for <a href="https://data-star.dev">Datastar</a> •
+            <a href="https://github.com/ndendic/data-satellites">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
+
+
