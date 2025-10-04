@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datastar Resize Plugin - Documentation & Demo</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/open-props">
+    <link rel="stylesheet" href="https://unpkg.com/open-props/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <script type="module">
+        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
+        import ResizePlugin from '../dist/min/resize.min.js';
+        import PersistPlugin from '../dist/min/persist.min.js';
+        
+        load(ResizePlugin, PersistPlugin);
+        apply();
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+        });
+    </script>
+
+    <style>
+        :root {
+            --background: hsl(0, 0%, 100%);
+            --foreground: hsl(224, 71%, 4%);
+            --muted: hsl(220, 14%, 96%);
+            --muted-foreground: hsl(220, 9%, 46%);
+            --border: hsl(220, 13%, 91%);
+            --primary: hsl(262, 83%, 58%);
+            --primary-foreground: hsl(210, 40%, 98%);
+            --radius: 0.5rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: hsl(224, 71%, 4%);
+                --foreground: hsl(213, 31%, 91%);
+                --muted: hsl(223, 47%, 11%);
+                --muted-foreground: hsl(215, 16%, 65%);
+                --border: hsl(216, 34%, 17%);
+            }
+        }
+
+        * {
+            border-color: var(--border);
+        }
+
+        body {
+            font-family: var(--font-neo-grotesque);
+            letter-spacing: var(--letter-spacing-2);
+            background: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: var(--size-lg);
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--muted);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            font-size: 1.875rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+        }
+
+        .code {
+            background: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            overflow-x: auto;
+        }
+
+        .code pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .code code {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+        }
+
+        .code pre code.hljs {
+            padding: 0;
+            background: transparent;
+        }
+
+        .resize-demo {
+            background: var(--muted);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 1rem 0;
+            resize: both;
+            overflow: auto;
+            min-height: 200px;
+            max-width: 100%;
+        }
+
+        .resize-demo-content {
+            text-align: center;
+        }
+
+        .resize-demo-content h4 {
+            margin: 0 0 1rem;
+            font-size: 1.25rem;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .status-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+        }
+
+        .status-card h4 {
+            margin: 0 0 0.5rem;
+            font-size: 0.875rem;
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-card .value {
+            font-family: var(--font-mono);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .breakpoint-indicator {
+            background: var(--background);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        .breakpoint-indicator .current {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .breakpoint-indicator .description {
+            color: var(--muted-foreground);
+        }
+
+        .responsive-grid {
+            display: grid;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .responsive-grid.mobile {
+            grid-template-columns: 1fr;
+        }
+
+        .responsive-grid.tablet {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .responsive-grid.desktop {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-item {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .hero {
+                padding: 2rem 0;
+            }
+        }
+    </style>
+</head>
+<body data-resize>
+    <div class="container">
+        <div class="hero">
+            <h1>data-resize</h1>
+            <p>Resize observation with breakpoints and responsive helpers</p>
+        </div>
+
+        <!-- Installation -->
+        <section class="section">
+            <h2>Installation</h2>
+            <div class="code">
+                <pre><code class="language-javascript">&lt;script type="module"&gt;
+import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
+import ResizePlugin from 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/resize.min.js';
+
+load(ResizePlugin);
+apply();
+&lt;/script&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Window Resize -->
+        <section class="section">
+            <h2>Window Resize Tracking</h2>
+            <p>Tracks window dimensions and responsive breakpoints automatically</p>
+
+            <div class="breakpoint-indicator">
+                <div class="current" data-text="$resize_current_breakpoint"></div>
+                <div class="description">
+                    <span data-show="$resize_is_mobile">📱 Mobile View (< 768px)</span>
+                    <span data-show="$resize_is_tablet">💻 Tablet View (768px - 1024px)</span>
+                    <span data-show="$resize_is_desktop">🖥️ Desktop View (> 1024px)</span>
+                </div>
+            </div>
+
+            <div class="status-grid">
+                <div class="status-card">
+                    <h4>Window Width</h4>
+                    <div class="value" data-text="`${$resize_window_width}px`"></div>
+                </div>
+                <div class="status-card">
+                    <h4>Window Height</h4>
+                    <div class="value" data-text="`${$resize_window_height}px`"></div>
+                </div>
+                <div class="status-card">
+                    <h4>Breakpoint</h4>
+                    <div class="value" data-text="$resize_current_breakpoint"></div>
+                </div>
+            </div>
+
+            <div class="code">
+                <pre><code class="language-html">&lt;!-- Track window resize --&gt;
+&lt;body data-resize&gt;
+
+&lt;!-- Display breakpoint --&gt;
+&lt;div data-text="$resize_current_breakpoint"&gt;&lt;/div&gt;
+
+&lt;!-- Responsive content --&gt;
+&lt;div data-show="$resize_is_mobile"&gt;Mobile content&lt;/div&gt;
+&lt;div data-show="$resize_is_tablet"&gt;Tablet content&lt;/div&gt;
+&lt;div data-show="$resize_is_desktop"&gt;Desktop content&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Element Resize -->
+        <section class="section">
+            <h2>Element Resize Tracking</h2>
+            <p>Track specific element dimensions (drag corner to resize)</p>
+
+            <div class="resize-demo" data-resize>
+                <div class="resize-demo-content">
+                    <h4>Resizable Element</h4>
+                    <p>Drag the corner to resize me</p>
+                    <div class="status-grid">
+                        <div class="status-card">
+                            <h4>Width</h4>
+                            <div class="value" data-text="`${$resize_width}px`"></div>
+                        </div>
+                        <div class="status-card">
+                            <h4>Height</h4>
+                            <div class="value" data-text="`${$resize_height}px`"></div>
+                        </div>
+                        <div class="status-card">
+                            <h4>Aspect Ratio</h4>
+                            <div class="value" data-text="$resize_aspect_ratio"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code">
+                <pre><code class="language-html">&lt;div data-resize style="resize: both; overflow: auto;"&gt;
+    &lt;div data-text="`Width: ${$resize_width}px`"&gt;&lt;/div&gt;
+    &lt;div data-text="`Height: ${$resize_height}px`"&gt;&lt;/div&gt;
+    &lt;div data-text="`Aspect: ${$resize_aspect_ratio}`"&gt;&lt;/div&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Responsive Grid -->
+        <section class="section">
+            <h2>Responsive Grid Example</h2>
+            <p>Grid adapts based on breakpoint</p>
+
+            <div class="responsive-grid"
+                 data-class-mobile="$resize_is_mobile"
+                 data-class-tablet="$resize_is_tablet"
+                 data-class-desktop="$resize_is_desktop">
+                <div class="grid-item">Item 1</div>
+                <div class="grid-item">Item 2</div>
+                <div class="grid-item">Item 3</div>
+            </div>
+
+            <div class="code">
+                <pre><code class="language-html">&lt;div class="grid"
+     data-class-mobile="$resize_is_mobile"
+     data-class-tablet="$resize_is_tablet"
+     data-class-desktop="$resize_is_desktop"&gt;
+    &lt;div class="item"&gt;Item 1&lt;/div&gt;
+    &lt;div class="item"&gt;Item 2&lt;/div&gt;
+    &lt;div class="item"&gt;Item 3&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;style&gt;
+.grid.mobile { grid-template-columns: 1fr; }
+.grid.tablet { grid-template-columns: repeat(2, 1fr); }
+.grid.desktop { grid-template-columns: repeat(3, 1fr); }
+&lt;/style&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- API Reference -->
+        <section class="section">
+            <h2>API Reference</h2>
+
+            <h3>Signals Created</h3>
+            <div class="code">
+                <pre><code>$resize_width              - Number: Element width in pixels
+$resize_height             - Number: Element height in pixels
+$resize_window_width       - Number: Window width in pixels
+$resize_window_height      - Number: Window height in pixels
+$resize_aspect_ratio       - Number: Width/height ratio
+$resize_current_breakpoint - String: xs, sm, md, lg, xl, 2xl
+$resize_is_mobile          - Boolean: Width < 768px
+$resize_is_tablet          - Boolean: 768px <= Width < 1024px
+$resize_is_desktop         - Boolean: Width >= 1024px</code></pre>
+            </div>
+
+            <h3>Breakpoints</h3>
+            <div class="code">
+                <pre><code>xs    - < 640px
+sm    - 640px  - 768px
+md    - 768px  - 1024px
+lg    - 1024px - 1280px
+xl    - 1280px - 1536px
+2xl   - >= 1536px</code></pre>
+            </div>
+
+            <h3>Throttling & Debouncing</h3>
+            <div class="code">
+                <pre><code class="language-html">&lt;!-- Throttle updates (default: 150ms) --&gt;
+&lt;div data-resize__throttle.100&gt;&lt;/div&gt;
+
+&lt;!-- Debounce updates (wait for resize to finish) --&gt;
+&lt;div data-resize__debounce.300&gt;&lt;/div&gt;
+
+&lt;!-- RAF throttle (60 FPS) --&gt;
+&lt;div data-resize__throttle.16&gt;&lt;/div&gt;</code></pre>
+            </div>
+
+            <h3>Common Use Cases</h3>
+            <div class="code">
+                <pre><code class="language-html">&lt;!-- Responsive navigation --&gt;
+&lt;nav data-show="$resize_is_desktop"&gt;Desktop Menu&lt;/nav&gt;
+&lt;button data-show="$resize_is_mobile"&gt;☰ Menu&lt;/button&gt;
+
+&lt;!-- Conditional content --&gt;
+&lt;div data-show="$resize_width > 600"&gt;Wide content&lt;/div&gt;
+
+&lt;!-- Dynamic styling --&gt;
+&lt;div data-style-font-size="`${$resize_width / 20}px`"&gt;&lt;/div&gt;
+
+&lt;!-- Breakpoint classes --&gt;
+&lt;div data-class-mobile="$resize_is_mobile"
+     data-class-desktop="$resize_is_desktop"&gt;&lt;/div&gt;
+
+&lt;!-- Execute on resize --&gt;
+&lt;div data-resize="console.log('Resized!')"&gt;&lt;/div&gt;</code></pre>
+            </div>
+
+            <h3>Features</h3>
+            <ul>
+                <li>ResizeObserver API for efficient tracking</li>
+                <li>Window and element resize observation</li>
+                <li>Built-in responsive breakpoints</li>
+                <li>Aspect ratio calculation</li>
+                <li>Throttle and debounce options</li>
+                <li>Mobile/tablet/desktop helpers</li>
+                <li>Automatic fallback for older browsers</li>
+            </ul>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>Built for <a href="https://data-star.dev">Datastar</a> •
+            <a href="https://github.com/ndendic/data-satellites">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
+
+
