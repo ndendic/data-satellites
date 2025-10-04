@@ -74,6 +74,10 @@ const scrollAttributePlugin: AttributePlugin = {
   onLoad(ctx: RuntimeContext): OnRemovalFn | void {
     const { el, value, mods, rx, mergePatch, startBatch, endBatch, getPath } = ctx;
     
+    // Create unique identifier for this element
+    const elementId = el.id || `scroll-${Math.random().toString(36).substr(2, 9)}`;
+    if (!el.id) el.id = elementId;
+    
     const shouldManageGlobal = !globalScrollInitialized;
     if (shouldManageGlobal) {
       globalScrollInitialized = true;
@@ -200,11 +204,11 @@ const scrollAttributePlugin: AttributePlugin = {
       }
       
       const elementPatch = {
-        scroll_visible: isInViewport,
-        scroll_visible_percent: patchedVisiblePercent,
-        scroll_progress: patchedProgress,
-        scroll_element_top: elementTop,
-        scroll_element_bottom: elementBottom,
+        [`${elementId}_scroll_visible`]: isInViewport,
+        [`${elementId}_scroll_visible_percent`]: patchedVisiblePercent,
+        [`${elementId}_scroll_progress`]: patchedProgress,
+        [`${elementId}_scroll_element_top`]: elementTop,
+        [`${elementId}_scroll_element_bottom`]: elementBottom,
       };
       mergePatch(elementPatch);
       

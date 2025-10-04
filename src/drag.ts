@@ -402,11 +402,12 @@ function cleanupActiveDrag() {
   document.removeEventListener("pointermove", handleGlobalPointerMove);
   document.removeEventListener("pointerup", handleGlobalPointerUp);
 
-  const { state } = active;
+  const { state, config } = active;
   if (state.element) {
     state.element.classList.remove("is-dragging");
 
     const canvasContainer = state.element.closest("[data-canvas-container]");
+    const inDropZone = state.element.closest("[data-drop-zone]");
 
     const baseStyles = {
       zIndex: "",
@@ -418,6 +419,15 @@ function cleanupActiveDrag() {
 
     if (canvasContainer) {
       Object.assign(state.element.style, baseStyles);
+    } else if (config.mode === "sortable" && inDropZone) {
+      // In sortable mode, always clear positioning for items in drop zones
+      Object.assign(state.element.style, {
+        ...baseStyles,
+        position: "",
+        transform: "",
+        left: "",
+        top: ""
+      });
     } else {
       const relativeParent = findRelativeParent(state.element);
       Object.assign(
