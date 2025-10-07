@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datastar Persist Plugin - Documentation & Demo</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/open-props">
+    <link rel="stylesheet" href="https://unpkg.com/open-props/normalize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <script type="module">
+        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
+        import PersistPlugin from '../dist/min/persist.min.js';
+
+        load(PersistPlugin);
+        apply();
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            hljs.highlightAll();
+        });
+    </script>
+
+    <style>
+        :root {
+            --background: hsl(0, 0%, 100%);
+            --foreground: hsl(224, 71%, 4%);
+            --muted: hsl(220, 14%, 96%);
+            --muted-foreground: hsl(220, 9%, 46%);
+            --border: hsl(220, 13%, 91%);
+            --primary: hsl(262, 83%, 58%);
+            --primary-foreground: hsl(210, 40%, 98%);
+            --radius: 0.5rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: hsl(224, 71%, 4%);
+                --foreground: hsl(213, 31%, 91%);
+                --muted: hsl(223, 47%, 11%);
+                --muted-foreground: hsl(215, 16%, 65%);
+                --border: hsl(216, 34%, 17%);
+            }
+        }
+
+        * {
+            border-color: var(--border);
+        }
+
+        body {
+            font-family: var(--font-neo-grotesque);
+            letter-spacing: var(--letter-spacing-2);
+            background: var(--background);
+            color: var(--foreground);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: var(--size-lg);
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--muted);
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.125rem;
+            color: var(--muted-foreground);
+            margin-bottom: 0;
+        }
+
+        .section { margin-bottom: 3rem; }
+        .section h2 { font-size: 1.875rem; font-weight: 600; margin-bottom: 1.5rem; }
+        .section h3 { font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+
+        .code {
+            background: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin: 0.75rem 0;
+            overflow-x: auto;
+        }
+
+        .code pre { margin: 0; font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.5; }
+        .code pre code.hljs { padding: 0; background: transparent; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+        .card { background: var(--background); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+        .row { display: flex; gap: .5rem; align-items: center; margin: .5rem 0; }
+        input[type="text"], input[type="number"] { padding: .5rem .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); color: var(--foreground); width: 100%; }
+        label { font-size: .875rem; color: var(--muted-foreground); }
+        .muted { color: var(--muted-foreground); font-size: .875rem; }
+        .badge { display: inline-block; padding: .25rem .5rem; border-radius: var(--radius); background: var(--muted); border: 1px solid var(--border); font-size: .75rem; }
+
+        footer { margin-top: 4rem; padding: 2rem 0; }
+        a { color: var(--primary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .hero { padding: 2rem 0; }
+        }
+    </style>
+</head>
+<body data-signals="{name: 'Ada', age: 33, theme: 'light', sessionNote: '', throttleCount: 0, tab: 'cdn'}" data-persist="name, age, theme, sessionNote, throttleCount, tab">
+    <div class="container">
+        <div class="hero">
+            <h1>data-persist</h1>
+            <p>Persist Datastar signals to localStorage / sessionStorage</p>
+        </div>
+
+        <!-- Installation -->
+        <section class="section">
+            <h2>Installation</h2>
+            <div class="code">
+<pre><code class="language-javascript">&lt;script type="module"&gt;
+import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
+import PersistPlugin from 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/persist.min.js';
+
+load(PersistPlugin);
+apply();
+&lt;/script&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Basic Usage -->
+        <section class="section">
+            <h2>Basic Usage</h2>
+            <p class="muted">Boolean attribute persists all signals found on the page (via explicit list below and any discovered via <span class="badge">data-signals-*</span>).</p>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>Profile</h3>
+                    <div class="row"><label for="name">Name</label></div>
+                    <div class="row"><input id="name" type="text" placeholder="Your name" data-bind="name"></div>
+                    <div class="row"><label for="age">Age</label></div>
+                    <div class="row"><input id="age" type="number" min="0" data-bind="age"></div>
+                    <div class="row"><span class="badge" data-text="`$name (${ $age })`"></span></div>
+                </div>
+
+                <div class="card">
+                    <h3>Theme</h3>
+                    <div class="row">
+                        <label>Current</label>
+                        <span class="badge" data-text="$theme"></span>
+                    </div>
+                    <div class="row">
+                        <button data-on-click="$theme = 'light'">Light</button>
+                        <button data-on-click="$theme = 'dark'">Dark</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code">
+<pre><code class="language-html">&lt;body data-signals="{name: 'Ada', age: 33, theme: 'light'}" data-persist&gt;
+    &lt;input data-on-input="$name = $event.target.value" data-value="$name" /&gt;
+    &lt;button data-on-click="$theme = 'dark'"&gt;Dark&lt;/button&gt;
+&lt;/body&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Namespaced Keys -->
+        <section class="section">
+            <h2>Namespaced Keys</h2>
+            <p class="muted">Use a suffix to isolate storage: <span class="badge">data-persist-profile</span> saves under a separate key.</p>
+
+            <div class="grid">
+                <div class="card" data-signals-notes="''" data-persist-profile="notes">
+                    <h3>Profile Notes (localStorage)</h3>
+                    <div class="row"><input type="text" placeholder="Add note" data-on-input="$notes = $event.target.value" data-value="$notes"></div>
+                    <div class="row"><span class="muted">Key: satellite-persist-profile</span></div>
+                </div>
+
+                <div class="card" data-signals-sessionNote="''" data-persist-session.session="sessionNote">
+                    <h3>Session Notes (sessionStorage)</h3>
+                    <div class="row"><input type="text" placeholder="Session-only value" data-on-input="$sessionNote = $event.target.value" data-value="$sessionNote"></div>
+                    <div class="row"><span class="muted">Key: satellite-persist-session (sessionStorage)</span></div>
+                </div>
+            </div>
+
+<div class="code">
+<pre><code class="language-html">&lt;div data-signals-notes="''" data-persist-profile="notes"&gt;&lt;/div&gt;
+&lt;div data-signals-sessionNote="''" data-persist-session.session="sessionNote"&gt;&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Attribute List vs Wildcard Discovery -->
+        <section class="section">
+            <h2>Explicit List vs Wildcard</h2>
+            <p class="muted">If a value is provided, only listed signals are persisted. Otherwise, all <span class="badge">data-signals-*</span> discoveries are persisted.</p>
+
+            <div class="grid">
+                <div class="card" data-signals-user_name="'Grace'" data-signals-user_email="'grace@example.com'" data-persist-account="user_name, user_email">
+                    <h3>Explicit List</h3>
+                    <div class="row"><input type="text" placeholder="Name" data-on-input="$user_name = $event.target.value" data-value="$user_name"></div>
+                    <div class="row"><input type="text" placeholder="Email" data-on-input="$user_email = $event.target.value" data-value="$user_email"></div>
+                    <div class="row"><span class="muted">Only name + email are stored</span></div>
+                </div>
+
+                <div class="card" data-signals-cart_total="0" data-signals-currency="'USD'" data-persist-cart>
+                    <h3>Wildcard</h3>
+                    <div class="row"><input type="number" min="0" step="1" data-on-input="$cart_total = Number($event.target.value)" data-value="$cart_total"></div>
+                    <div class="row">
+                        <button data-on-click="$currency = 'USD'">USD</button>
+                        <button data-on-click="$currency = 'EUR'">EUR</button>
+                    </div>
+                    <div class="row"><span class="muted">All discovered cart signals are stored</span></div>
+                </div>
+            </div>
+
+            <div class="code">
+<pre><code class="language-html">&lt;div data-persist-account="user_name, user_email"&gt;&lt;/div&gt;
+&lt;div data-persist-cart&gt;&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Throttling -->
+        <section class="section">
+            <h2>Throttling</h2>
+            <p class="muted">Use <span class="badge">.immediate</span> for no debounce, or <span class="badge">__throttle.N</span> to debounce writes.</p>
+
+            <div class="grid">
+                <div class="card" data-signals-fast="''" data-persist-fast.immediate="fast">
+                    <h3>Immediate</h3>
+                    <div class="row"><input type="text" placeholder="Fast updates" data-on-input="$fast = $event.target.value" data-value="$fast"></div>
+                </div>
+
+                <div class="card" data-signals-slow="''" data-persist-slow__throttle.1000="slow">
+                    <h3>Debounced (1000ms)</h3>
+                    <div class="row"><input type="text" placeholder="Debounced updates" data-on-input="$slow = $event.target.value" data-value="$slow"></div>
+                </div>
+            </div>
+
+            <div class="code">
+<pre><code class="language-html">&lt;div data-persist-fast.immediate="fast"&gt;&lt;/div&gt;
+&lt;div data-persist-slow__throttle.1000="slow"&gt;&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+        <!-- Storage Visibility -->
+        <section class="section">
+            <h2>Inspect Storage</h2>
+            <p class="muted">Values are stored under keys starting with <span class="badge">satellite-persist</span>. Refresh to verify persistence.</p>
+            <div class="card">
+                <div class="row"><button data-on-click="$throttleCount = $throttleCount + 1">Increment counter</button> <span class="badge" data-text="$throttleCount"></span></div>
+                <div class="row"><span class="muted">Open DevTools → Application → Storage to inspect.</span></div>
+            </div>
+        </section>
+
+        <!-- API Reference -->
+        <section class="section">
+            <h2>API Reference</h2>
+
+            <h3>Attributes</h3>
+            <div class="code">
+<pre><code class="language-html">&lt;!-- Persist all discovered signals (boolean attribute) --&gt;
+&lt;div data-persist&gt;&lt;/div&gt;
+
+&lt;!-- Persist only listed signals --&gt;
+&lt;div data-persist="name, age"&gt;&lt;/div&gt;
+
+&lt;!-- Namespaced key (stored as satellite-persist-profile) --&gt;
+&lt;div data-persist-profile="notes"&gt;&lt;/div&gt;
+
+&lt;!-- Session storage --&gt;
+&lt;div data-persist.session&gt;&lt;/div&gt;
+
+&lt;!-- Throttle writes (ms) --&gt;
+&lt;div data-persist__throttle.1000&gt;&lt;/div&gt;
+
+&lt;!-- Immediate writes (no debounce) --&gt;
+&lt;div data-persist.immediate&gt;&lt;/div&gt;</code></pre>
+            </div>
+        </section>
+
+        <footer>
+            <p>Built for <a href="https://data-star.dev">Datastar</a> •
+            <a href="https://github.com/ndendic/data-satellites">GitHub</a></p>
+        </footer>
+    </div>
+</body>
+</html>
+
+
