@@ -14,20 +14,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <script type="module">
-        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
-        import DragPlugin from '../dist/min/drag.min.js';
-        import PersistPlugin from '../dist/min/persist.min.js';
+        import 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+        import { setConfig } from '../dist/min/drag.min.js';
+        import '../dist/min/persist.min.js';
+        import '../dist/min/drag.min.js';
         
         // Configure drag plugin
-        DragPlugin.setConfig({
+        setConfig({
             signal: 'drag',
-            mode: 'freeform',
+            mode: 'sortable',
             throttleMs: 16,
             constrainToParent: false
         });
-        
-        load(DragPlugin, PersistPlugin);
-        apply();
     </script>
 
     <script>
@@ -191,9 +189,14 @@
             color: var(--primary-foreground);
             border-radius: var(--radius);
             padding: 1rem;
+            margin-bottom: 0.5rem;
             cursor: move;
             user-select: none;
             transition: box-shadow 0.2s;
+        }
+        
+        .drag-item:last-child {
+            margin-bottom: 0;
         }
 
         .drag-item:hover {
@@ -260,7 +263,7 @@
         }
     </style>
 </head>
-<body data-signals="{mode: 'freeform'}" data-persist="mode">
+<body data-signals="{mode: 'sortable'}" data-persist="mode">
     <div class="container">
         <div class="hero">
             <h1>data-draggable</h1>
@@ -272,29 +275,27 @@
             <h2>Installation</h2>
             <div class="code">
                 <pre><code class="language-javascript">&lt;script type="module"&gt;
-import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
-import DragPlugin from 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/drag.min.js';
+import 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+import { setConfig } from 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/drag.min.js';
+import 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/drag.min.js';
 
-DragPlugin.setConfig({
+setConfig({
     signal: 'drag',
-    mode: 'freeform',
+    mode: 'sortable',
     throttleMs: 16,
     constrainToParent: false
 });
-
-load(DragPlugin);
-apply();
 &lt;/script&gt;</code></pre>
             </div>
         </section>
 
-        <!-- Freeform Mode -->
+        <!-- Sortable Mode -->
         <section class="section">
-            <h2>Freeform Drag & Drop</h2>
-            <p>Drag items anywhere on the page and drop them into zones</p>
+            <h2>Sortable Drag & Drop</h2>
+            <p>Drag items between zones - they will snap into position when dropped</p>
 
             <div class="playground" data-draggable>
-                <div class="playground-label">Freeform Mode</div>
+                <div class="playground-label">Sortable Mode</div>
                 
                 <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                     <div id="freeform-item-1" class="drag-item" data-draggable>
@@ -353,16 +354,16 @@ apply();
                 <div class="grid">
                     <div class="drop-zone" data-drop-zone="list-1">
                         <h4>List 1</h4>
-                        <div id="sort-item-1" class="drag-item" data-draggable style="margin-bottom: 0.5rem;">Item 1</div>
-                        <div id="sort-item-2" class="drag-item" data-draggable style="margin-bottom: 0.5rem;">Item 2</div>
-                        <div id="sort-item-3" class="drag-item" data-draggable style="margin-bottom: 0.5rem;">Item 3</div>
+                        <div id="sort-item-1" class="drag-item" data-draggable>Item 1</div>
+                        <div id="sort-item-2" class="drag-item" data-draggable>Item 2</div>
+                        <div id="sort-item-3" class="drag-item" data-draggable>Item 3</div>
                     </div>
                     
                     <div class="drop-zone" data-drop-zone="list-2">
                         <h4>List 2</h4>
-                        <div id="sort-item-4" class="drag-item" data-draggable style="margin-bottom: 0.5rem;">Item 4</div>
-                        <div id="sort-item-5" class="drag-item" data-draggable style="margin-bottom: 0.5rem;">Item 5</div>
-                        <div id="sort-item-6" class="drag-item" data-draggable style="margin-bottom: 0.5rem;">Item 6</div>
+                        <div id="sort-item-4" class="drag-item" data-draggable>Item 4</div>
+                        <div id="sort-item-5" class="drag-item" data-draggable>Item 5</div>
+                        <div id="sort-item-6" class="drag-item" data-draggable>Item 6</div>
                     </div>
                 </div>
             </div>
@@ -381,7 +382,7 @@ apply();
             <div class="code">
                 <pre><code class="language-javascript">DragPlugin.setConfig({
     signal: 'drag',              // Signal prefix (default: 'drag')
-    mode: 'freeform',            // 'freeform' or 'sortable'
+    mode: 'sortable',            // 'freeform' or 'sortable'
     throttleMs: 16,              // Update throttle in ms
     constrainToParent: false     // Keep within parent bounds
 });</code></pre>

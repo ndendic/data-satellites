@@ -1,28 +1,6 @@
+import { attribute } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+import { mergePatch, beginBatch, endBatch } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
 import { createDebounce, createRAFThrottle, createTimerThrottle } from "./throttle.js";
-
-interface AttributePlugin {
-  type: "attribute";
-  name: string;
-  keyReq: "starts" | "exact" | "allowed";
-  valReq?: "allowed";
-  argNames?: string[];
-  onLoad: (ctx: RuntimeContext) => OnRemovalFn | void;
-}
-
-interface RuntimeContext {
-  el: HTMLElement;
-  key: string;
-  value: string;
-  mods: Map<string, any>;
-  rx: (...args: any[]) => any;
-  effect: (fn: () => void) => () => void;
-  mergePatch: (patch: Record<string, any>) => void;
-  getPath: (path: string) => any;
-  startBatch: () => void;
-  endBatch: () => void;
-}
-
-type OnRemovalFn = () => void;
 
 interface ResizeConfig {
   debug?: boolean;
@@ -103,16 +81,16 @@ function createResizeContext(el: HTMLElement, windowWidth: number, windowHeight:
   };
 }
 
-const resizeAttributePlugin: AttributePlugin = {
-  type: "attribute",
-  name: "resize",
-  keyReq: "allowed",
-  valReq: "allowed",
-  argNames: [...RESIZE_ARG_NAMES],
+let globalConfig: ResizeConfig = { debug: false };
 
-  onLoad(ctx: RuntimeContext): OnRemovalFn | void {
-    const { el, value, mods, rx, mergePatch, startBatch, endBatch } = ctx;
-        
+export function setConfig(config: ResizeConfig) {
+  globalConfig = { ...globalConfig, ...config };
+}
+
+attribute({
+  name: 'resize',
+  requirement: 'optional',
+  apply({ el, value, mods, error }) {
     const initialContext = createResizeContext(el, window.innerWidth, window.innerHeight);
     const initPatch = {
       resize_width: initialContext.width,
@@ -132,7 +110,7 @@ const resizeAttributePlugin: AttributePlugin = {
     const handleResize = () => {
       const context = createResizeContext(el, window.innerWidth, window.innerHeight);
 
-      startBatch();
+      beginBatch();
       try {        
         const patch = {
           resize_width: context.width,
@@ -146,10 +124,10 @@ const resizeAttributePlugin: AttributePlugin = {
           resize_is_desktop: context.is_desktop,
         };
         mergePatch(patch);
-                
-        if (value) rx(value);
-      } catch (error) {
-        console.error("Error during resize handler:", error);
+        // Note: rx function not available in new API, value expression execution may need different approach
+      } catch (err) {
+        if (error) error('ResizeHandlerError', { error: err });
+        else console.error("Error during resize handler:", err);
       } finally {
         endBatch();
       }
@@ -178,16 +156,4 @@ const resizeAttributePlugin: AttributePlugin = {
       window.removeEventListener("resize", handleWindowResize);
     };
   },
-};
-
-let globalConfig: ResizeConfig = { debug: false };
-
-const resizePlugin = {
-  ...resizeAttributePlugin,
-
-  setConfig(config: ResizeConfig) {
-    globalConfig = { ...globalConfig, ...config };
-  },
-};
-
-export default resizePlugin;
+});

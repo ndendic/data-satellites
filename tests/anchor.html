@@ -14,11 +14,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <script type="module">
-        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
-        import AnchorPlugin from '../dist/min/anchor.min.js';
-        import PersistPlugin from '../dist/min/persist.min.js';
-        load(AnchorPlugin, PersistPlugin);
-        apply();
+        // Import Datastar first - this must load before plugins
+        import 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+        
+        // Then import plugins - they will auto-register
+        import '../dist/min/anchor.min.js';
+        import '../dist/min/persist.min.js';
     </script>
 
     <script>
@@ -360,18 +361,16 @@
             <h2>Installation</h2>
             <div >
                 <div class="tabs">
-                    <button class="tab" data-class-active="$tabActive == 'cdn'" data-on-click="$tabActive = 'cdn'">CDN</button>
-                    <button class="tab" data-class-active="$tabActive == 'local'" data-on-click="$tabActive = 'local'">Local</button>
+                    <button class="tab" data-class-active="$tabActive == 'cdn'" data-on:click="$tabActive = 'cdn'">CDN</button>
+                    <button class="tab" data-class-active="$tabActive == 'local'" data-on:click="$tabActive = 'local'">Local</button>
                 </div>
 
                 <div class="tab-content" data-show="$tabActive == 'cdn'">
                     <h3>CDN Installation</h3>
                     <div class="code">
                     <pre><code class="language-javascript">&lt;script type="module"&gt;
-import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
-import AnchorPlugin from 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/anchor.min.js';
-load(AnchorPlugin);
-apply();
+import 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+import 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/anchor.min.js';
 &lt;/script&gt;</code></pre>
                 </div>
                 </div>
@@ -379,9 +378,7 @@ apply();
                 <div class="tab-content" data-show="$tabActive == 'local'">
                     <h3>Local Development</h3>
                     <div class="code">
-                        <pre><code class="language-javascript">import AnchorPlugin from './dist/src/anchor.js';
-load(AnchorPlugin);
-apply();</code></pre>
+                        <pre><code class="language-javascript">import './dist/src/anchor.js';</code></pre>
                     </div>
                 </div>
             </div>
@@ -397,8 +394,8 @@ apply();</code></pre>
 
                 <div class="playground">
                     <button id="tooltip-anchor" class="btn"
-                            data-on-mouseenter="$tooltipVisible = true"
-                            data-on-mouseleave="$tooltipVisible = false">
+                            data-on:mouseenter="$tooltipVisible = true"
+                            data-on:mouseleave="$tooltipVisible = false">
                         Hover for Tooltip
                     </button>
                 </div>
@@ -411,8 +408,8 @@ apply();</code></pre>
 
                 <div class="code">
                     <pre><code class="language-html">&lt;button id="tooltip-anchor"
-        data-on-mouseenter="$tooltipVisible = true"
-        data-on-mouseleave="$tooltipVisible = false"&gt;
+        data-on:mouseenter="$tooltipVisible = true"
+        data-on:mouseleave="$tooltipVisible = false"&gt;
     Hover for Tooltip
 &lt;/button&gt;
 
@@ -431,7 +428,7 @@ apply();</code></pre>
                 <div class="playground">
                     <div class="playground-label">Click Demo</div>
                     <button id="dropdown-anchor" class="btn btn-outline"
-                            data-on-click="$dropdownVisible = !$dropdownVisible">
+                            data-on:click="$dropdownVisible = !$dropdownVisible">
                         Menu
                     </button>
                 </div>
@@ -439,14 +436,14 @@ apply();</code></pre>
                 <div data-anchor="'#dropdown-anchor, bottom-start, 8px'"
                      data-show="$dropdownVisible"
                      class="dropdown">
-                    <a href="#" class="dropdown-item" data-on-click="$dropdownVisible = false">Dashboard</a>
-                    <a href="#" class="dropdown-item" data-on-click="$dropdownVisible = false">Settings</a>
-                    <a href="#" class="dropdown-item" data-on-click="$dropdownVisible = false">Profile</a>
-                    <a href="#" class="dropdown-item" data-on-click="$dropdownVisible = false">Logout</a>
+                    <a href="#" class="dropdown-item" data-on:click="$dropdownVisible = false">Dashboard</a>
+                    <a href="#" class="dropdown-item" data-on:click="$dropdownVisible = false">Settings</a>
+                    <a href="#" class="dropdown-item" data-on:click="$dropdownVisible = false">Profile</a>
+                    <a href="#" class="dropdown-item" data-on:click="$dropdownVisible = false">Logout</a>
                 </div>
 
                 <div class="code">
-                    <pre><code class="language-html">&lt;button id="dropdown-anchor" data-on-click="$dropdownVisible = !$dropdownVisible"&gt;
+                    <pre><code class="language-html">&lt;button id="dropdown-anchor" data-on:click="$dropdownVisible = !$dropdownVisible"&gt;
     Menu
 &lt;/button&gt;
 
@@ -472,7 +469,7 @@ apply();</code></pre>
                 <div class="playground">
                     <div class="playground-label">Rich Content Demo</div>
                     <button id="popover-anchor" class="btn btn-ghost"
-                            data-on-click="$popoverVisible = !$popoverVisible">
+                            data-on:click="$popoverVisible = !$popoverVisible">
                         Show Info
                     </button>
                 </div>

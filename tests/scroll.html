@@ -11,12 +11,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <script type="module">
-        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
-        import ScrollPlugin from '../dist/min/scroll.min.js';
-        import PersistPlugin from '../dist/min/persist.min.js';
-        
-        load(ScrollPlugin, PersistPlugin);
-        apply();
+        import 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+        import '../dist/min/scroll.min.js';
+        import '../dist/min/persist.min.js';
     </script>
 
     <script>
@@ -162,13 +159,13 @@
         }
 
         .scroll-section {
-            min-height: 100vh;
+            min-height: 50vh;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: var(--radius);
-            margin: 2rem 0;
-            padding: 4rem 2rem;
+            margin: 1rem 0;
+            padding: 2rem;
             transition: all 0.3s;
         }
 
@@ -316,43 +313,45 @@ apply();
     </div>
 
     <!-- Scroll Sections with Visibility Tracking -->
-    <div class="scroll-section fade-in" 
-         data-scroll 
-         data-class-visible="$scroll_visible_percent > 50">
-        <div class="scroll-section-content">
-            <h3>Section 1</h3>
-            <p data-text="`Visible: ${$scroll_visible_percent}%`"></p>
-            <p>This section fades in when 50% visible</p>
+    <div class="container">
+        <div id="section1" class="scroll-section fade-in" 
+             data-scroll 
+             data-class-visible="$section1_scroll_visible_percent > 50">
+            <div class="scroll-section-content">
+                <h3>Section 1</h3>
+                <p data-text="`Visible: ${$section1_scroll_visible_percent}%`"></p>
+                <p>This section fades in when 50% visible</p>
+            </div>
         </div>
-    </div>
 
-    <div class="scroll-section fade-in" 
-         data-scroll 
-         data-class-visible="$scroll_visible_percent > 50">
-        <div class="scroll-section-content">
-            <h3>Section 2</h3>
-            <p data-text="`Visible: ${$scroll_visible_percent}%`"></p>
-            <p>Scroll tracking works per-element</p>
+        <div id="section2" class="scroll-section fade-in" 
+             data-scroll 
+             data-class-visible="$section2_scroll_visible_percent > 50">
+            <div class="scroll-section-content">
+                <h3>Section 2</h3>
+                <p data-text="`Visible: ${$section2_scroll_visible_percent}%`"></p>
+                <p>Scroll tracking works per-element</p>
+            </div>
         </div>
-    </div>
 
-    <div class="scroll-section fade-in" 
-         data-scroll 
-         data-class-visible="$scroll_visible_percent > 50">
-        <div class="scroll-section-content">
-            <h3>Section 3</h3>
-            <p data-text="`Visible: ${$scroll_visible_percent}%`"></p>
-            <p>Each section tracks independently</p>
+        <div id="section3" class="scroll-section fade-in" 
+             data-scroll 
+             data-class-visible="$section3_scroll_visible_percent > 50">
+            <div class="scroll-section-content">
+                <h3>Section 3</h3>
+                <p data-text="`Visible: ${$section3_scroll_visible_percent}%`"></p>
+                <p>Each section tracks independently</p>
+            </div>
         </div>
-    </div>
 
-    <div class="scroll-section fade-in" 
-         data-scroll 
-         data-class-visible="$scroll_visible_percent > 50">
-        <div class="scroll-section-content">
-            <h3>Section 4</h3>
-            <p data-text="`Visible: ${$scroll_visible_percent}%`"></p>
-            <p>Keep scrolling to see more</p>
+        <div id="section4" class="scroll-section fade-in" 
+             data-scroll 
+             data-class-visible="$section4_scroll_visible_percent > 50">
+            <div class="scroll-section-content">
+                <h3>Section 4</h3>
+                <p data-text="`Visible: ${$section4_scroll_visible_percent}%`"></p>
+                <p>Keep scrolling to see more</p>
+            </div>
         </div>
     </div>
 

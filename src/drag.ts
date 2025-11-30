@@ -1,28 +1,6 @@
+import { attribute } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+import { mergePatch, beginBatch, endBatch } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
 import { createRAFThrottle, createTimerThrottle } from "./throttle.js";
-
-interface AttributePlugin {
-  type: "attribute";
-  name: string;
-  keyReq: "allowed" | "denied" | "starts" | "exact";
-  valReq?: "allowed" | "denied" | "must";
-  shouldEvaluate?: boolean;
-  onLoad: (ctx: RuntimeContext) => OnRemovalFn | void;
-}
-
-interface RuntimeContext {
-  el: HTMLElement;
-  key: string;
-  value: string;
-  mods: Map<string, any>;
-  rx: (...args: any[]) => any;
-  effect: (fn: () => void) => () => void;
-  getPath: (path: string) => any;
-  mergePatch: (patch: Record<string, any>) => void;
-  startBatch: () => void;
-  endBatch: () => void;
-}
-
-type OnRemovalFn = () => void;
 
 interface DragConfig {
   signal: string;
@@ -150,7 +128,7 @@ const findInsertPosition = (
   return null;
 };
 
-const updateDropZoneTracking = (_config: DragConfig, mergePatch: RuntimeContext["mergePatch"]) => {
+const updateDropZoneTracking = (_config: DragConfig, mergePatchFn: (patch: Record<string, any>) => void) => {
   const allZones = document.querySelectorAll("[data-drop-zone]");
 
   for (const zone of allZones) {
@@ -177,7 +155,7 @@ const updateDropZoneTracking = (_config: DragConfig, mergePatch: RuntimeContext[
     }
 
     const sig = _config.signal ?? "drag";
-    mergePatch({
+    mergePatchFn({
       [`${sig}_zone_${zoneName}_items`]: items,
     });
   }
@@ -220,9 +198,9 @@ function ensureAndPlacePlaceholder(state: DragState & { placeholder?: HTMLElemen
 type Registration = {
   el: HTMLElement;
   mods: Map<string, any>;
-  mergePatch: RuntimeContext["mergePatch"];
-  startBatch: RuntimeContext["startBatch"];
-  endBatch: RuntimeContext["endBatch"];
+  mergePatch: (patch: Record<string, any>) => void;
+  beginBatch: () => void;
+  endBatch: () => void;
 };
 
 type ActiveDrag = {
@@ -274,7 +252,7 @@ function computeAndMergeIfChanged(ctx: Registration, _debug: boolean, last: Reco
     }
   }
   if (Object.keys(patch).length === 0) return;
-  ctx.startBatch();
+  ctx.beginBatch();
   try {
     ctx.mergePatch(patch);
         
@@ -402,11 +380,12 @@ function cleanupActiveDrag() {
   document.removeEventListener("pointermove", handleGlobalPointerMove);
   document.removeEventListener("pointerup", handleGlobalPointerUp);
 
-  const { state } = active;
+  const { state, config } = active;
   if (state.element) {
     state.element.classList.remove("is-dragging");
 
     const canvasContainer = state.element.closest("[data-canvas-container]");
+    const inDropZone = state.element.closest("[data-drop-zone]");
 
     const baseStyles = {
       zIndex: "",
@@ -418,6 +397,15 @@ function cleanupActiveDrag() {
 
     if (canvasContainer) {
       Object.assign(state.element.style, baseStyles);
+    } else if (config.mode === "sortable" && inDropZone) {
+      // In sortable mode, always clear positioning for items in drop zones
+      Object.assign(state.element.style, {
+        ...baseStyles,
+        position: "",
+        transform: "",
+        left: "",
+        top: ""
+      });
     } else {
       const relativeParent = findRelativeParent(state.element);
       Object.assign(
@@ -618,19 +606,17 @@ function detachGlobalPointerDown() {
   globalPointerDownAttached = false;
 }
 
-const dragAttributePlugin: AttributePlugin = {
-  type: "attribute",
-  name: "draggable",
-  keyReq: "starts",
-  valReq: "allowed",
-  shouldEvaluate: false,
+// Export setConfig function for plugin configuration
+export function setConfig(config: any) {
+  (window as any).__starhtml_drag_config = config;
+}
 
-  onLoad(ctx: RuntimeContext): OnRemovalFn | void {
-    const { el, mergePatch, mods, startBatch, endBatch } = ctx;
-
+attribute({
+  name: 'draggable',
+  requirement: 'prefix',
+  apply({ el, mods }) {
     const config = getGlobalConfig();
     const sig = config.signal ?? "drag";
-  
 
     const initPatch = {
       [`${sig}_is_dragging`]: false,
@@ -640,16 +626,14 @@ const dragAttributePlugin: AttributePlugin = {
       [`${sig}_drop_zone`]: null,
     } as Record<string, any>;
     mergePatch(initPatch);
-    
 
     const dropZoneName = el.getAttribute("data-drop-zone");
     if (dropZoneName) {
       const zonePatch = { [`${sig}_zone_${dropZoneName}_items`]: getDropZoneItems(el) } as Record<string, any>;
       mergePatch(zonePatch);
-      
     }
 
-    const registration: Registration = { el, mods, mergePatch, startBatch, endBatch };
+    const registration: Registration = { el, mods, mergePatch, startBatch: beginBatch, endBatch };
     registrations.push(registration);
     attachGlobalPointerDown();
 
@@ -661,16 +645,4 @@ const dragAttributePlugin: AttributePlugin = {
       }
     };
   },
-};
-
-const dragPlugin = {
-  ...dragAttributePlugin,
-  argNames: [] as string[],
-  setConfig(config: any) {
-    (window as any).__starhtml_drag_config = config;
-    const signal = config?.signal ? String(config.signal) : "drag";
-    (this as any).argNames = getDragArgNames(signal);
-  },
-};
-
-export default dragPlugin;
+});

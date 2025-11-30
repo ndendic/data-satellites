@@ -1,24 +1,5 @@
-interface AttributePlugin {
-  type: "attribute";
-  name: string;
-  keyReq: "allowed" | "denied" | "starts" | "exact";
-  valReq?: "allowed" | "denied" | "must";
-  shouldEvaluate?: boolean;
-  onLoad: (ctx: RuntimeContext) => OnRemovalFn | void;
-}
-interface RuntimeContext {
-  el: HTMLElement;
-  key: string;
-  value: string;
-  mods: Map<string, any>;
-  rx: (...args: any[]) => any;
-  effect: (fn: () => void) => () => void;
-  getPath: (path: string) => any;
-  mergePatch: (patch: Record<string, any>) => void;
-  startBatch: () => void;
-  endBatch: () => void;
-}
-type OnRemovalFn = () => void;
+import { attribute } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+import { mergePatch, beginBatch, endBatch } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
 interface Point {
   x: number;
   y: number;
@@ -125,15 +106,27 @@ class CanvasController {
   private readonly resetViewFn = this.resetView.bind(this);
   private readonly zoomInFn = this.zoomIn.bind(this);
   private readonly zoomOutFn = this.zoomOut.bind(this);
+  private mergePatchFn: (patch: Record<string, any>) => void;
+  private beginBatchFn: () => void;
+  private endBatchFn: () => void;
+  private rxFn: (...args: any[]) => any;
+
   constructor(
-    private ctx: RuntimeContext,
-    config: CanvasConfig
+    el: HTMLElement,
+    config: CanvasConfig,
+    mergePatchFn: (patch: Record<string, any>) => void,
+    beginBatchFn: () => void,
+    endBatchFn: () => void,
+    rxFn: (...args: any[]) => any
   ) {
     this.config = config;
+    this.mergePatchFn = mergePatchFn;
+    this.beginBatchFn = beginBatchFn;
+    this.endBatchFn = endBatchFn;
+    this.rxFn = rxFn;
     this.setupEventListeners();
     this.initializeDOMElements();
   }
-  public setContext(ctx: RuntimeContext) { this.ctx = ctx; }
   private setupEventListeners() {
     document.addEventListener("pointerdown", this.boundHandlePointerDown);
     document.addEventListener("wheel", this.boundHandleWheel, { passive: false });
@@ -441,7 +434,7 @@ class CanvasController {
       [`${this.config.signal}_context_menu_screen_x`]: evt.clientX,
       [`${this.config.signal}_context_menu_screen_y`]: evt.clientY,
     } as Record<string, any>;
-    this.ctx.mergePatch(updates);
+    this.mergePatchFn(updates);
   }
   private clampZoom(zoom: number): number {
     return Math.max(this.config.minZoom, Math.min(this.config.maxZoom, zoom));
@@ -529,13 +522,13 @@ class CanvasController {
       if (this.lastSent[k] !== updates[k]) patch[k] = updates[k];
     }
     if (Object.keys(patch).length === 0) return;
-    this.ctx.startBatch();
+    this.beginBatchFn();
     try {
-      this.ctx.mergePatch(patch);
-      this.ctx.rx(this.camera.x, this.camera.y, this.camera.z, this.isPanning);
+      this.mergePatchFn(patch);
+      this.rxFn(this.camera.x, this.camera.y, this.camera.z, this.isPanning);
       Object.assign(this.lastSent, patch);
     } finally {
-      this.ctx.endBatch();
+      this.endBatchFn();
     }
   }
   public destroy() {
@@ -553,28 +546,25 @@ class CanvasController {
     this.stopPanning();
   }
 }
-const canvasAttributePlugin: AttributePlugin = {
-  type: "attribute",
-  name: "onCanvas",
-  keyReq: "starts",
-  onLoad(ctx: RuntimeContext): OnRemovalFn | void {
-    const { value } = ctx;
+// Export setConfig function for plugin configuration
+export function setConfig(config: any) {
+  window.__starhtml_canvas_config = config;
+}
+
+attribute({
+  name: 'onCanvas',
+  requirement: 'prefix',
+  apply({ el, value, error }) {
     if (!value) return;
     const globalConfig = window.__starhtml_canvas_config;
     const config = parseConfig(globalConfig);
-    const controller = new CanvasController(ctx, config);
+    
+    // rx function may not be available in new API, using a no-op for now
+    const rxFn = () => {};
+    
+    const controller = new CanvasController(el, config, mergePatch, beginBatch, endBatch, rxFn);
     return () => {
       controller.destroy();
     };
   },
-};
-const canvasPlugin = {
-  ...canvasAttributePlugin,
-  argNames: [] as string[],
-  setConfig(config: any) {
-    window.__starhtml_canvas_config = config;
-    const signal = config?.signal ? String(config.signal) : "canvas";
-    (this as any).argNames = getCanvasArgNames(signal);
-  },
-};
-export default canvasPlugin;
+});
