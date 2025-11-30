@@ -3,25 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Datastar Persist Plugin - Documentation & Demo</title>
+    <title>Datastar Persist Plugin - Test Page</title>
 
     <link rel="stylesheet" href="https://unpkg.com/open-props">
     <link rel="stylesheet" href="https://unpkg.com/open-props/normalize.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <script type="module">
-        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
-        import PersistPlugin from '../dist/min/persist.min.js';
-
-        load(PersistPlugin);
-        apply();
-    </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            hljs.highlightAll();
-        });
+        import 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+        import '../dist/min/persist.min.js';
     </script>
 
     <style>
@@ -33,6 +22,8 @@
             --border: hsl(220, 13%, 91%);
             --primary: hsl(262, 83%, 58%);
             --primary-foreground: hsl(210, 40%, 98%);
+            --success: hsl(142, 76%, 36%);
+            --warning: hsl(38, 92%, 50%);
             --radius: 0.5rem;
         }
 
@@ -52,252 +43,340 @@
 
         body {
             font-family: var(--font-neo-grotesque);
-            letter-spacing: var(--letter-spacing-2);
             background: var(--background);
             color: var(--foreground);
             margin: 0;
-            padding: 0;
+            padding: 2rem;
             line-height: 1.6;
         }
 
         .container {
-            max-width: var(--size-lg);
+            max-width: 800px;
             margin: 0 auto;
-            padding: 2rem;
         }
 
-        .hero {
-            text-align: center;
-            padding: 4rem 0;
-            margin-bottom: 3rem;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--muted-foreground);
+            margin-bottom: 2rem;
+        }
+
+        .test-section {
             background: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        .hero h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
+        .test-section h2 {
+            font-size: 1.25rem;
+            margin: 0 0 1rem 0;
+        }
+
+        .test-section p {
+            color: var(--muted-foreground);
+            font-size: 0.875rem;
+            margin: 0 0 1rem 0;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
             margin-bottom: 1rem;
         }
 
-        .hero p {
-            font-size: 1.125rem;
-            color: var(--muted-foreground);
-            margin-bottom: 0;
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border: none;
+            border-radius: var(--radius);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
         }
 
-        .section { margin-bottom: 3rem; }
-        .section h2 { font-size: 1.875rem; font-weight: 600; margin-bottom: 1.5rem; }
-        .section h3 { font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 0.75rem; }
+        .btn:hover {
+            opacity: 0.9;
+        }
 
-        .code {
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--foreground);
+        }
+
+        .btn-outline:hover {
             background: var(--muted);
+        }
+
+        .btn.active {
+            background: var(--success);
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--background);
+            color: var(--foreground);
+            font-size: 0.875rem;
+            width: 200px;
+        }
+
+        select {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--background);
+            color: var(--foreground);
+            font-size: 0.875rem;
+        }
+
+        .status {
+            background: var(--background);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 1rem;
-            margin: 0.75rem 0;
-            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
         }
 
-        .code pre { margin: 0; font-family: var(--font-mono); font-size: 0.875rem; line-height: 1.5; }
-        .code pre code.hljs { padding: 0; background: transparent; }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.25rem 0;
+            border-bottom: 1px dashed var(--border);
+        }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
-        .card { background: var(--background); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
-        .row { display: flex; gap: .5rem; align-items: center; margin: .5rem 0; }
-        input[type="text"], input[type="number"] { padding: .5rem .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); color: var(--foreground); width: 100%; }
-        label { font-size: .875rem; color: var(--muted-foreground); }
-        .muted { color: var(--muted-foreground); font-size: .875rem; }
-        .badge { display: inline-block; padding: .25rem .5rem; border-radius: var(--radius); background: var(--muted); border: 1px solid var(--border); font-size: .75rem; }
+        .status-row:last-child {
+            border-bottom: none;
+        }
 
-        footer { margin-top: 4rem; padding: 2rem 0; }
-        a { color: var(--primary); text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        .status-label {
+            color: var(--muted-foreground);
+        }
 
-        @media (max-width: 768px) {
-            .container { padding: 1rem; }
-            .hero { padding: 2rem 0; }
+        .status-value {
+            font-weight: 600;
+        }
+
+        .storage-viewer {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .storage-viewer h3 {
+            font-size: 0.875rem;
+            margin: 0 0 0.5rem 0;
+            color: var(--muted-foreground);
+        }
+
+        .storage-content {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            color: var(--foreground);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: 9999px;
+            background: var(--primary);
+            color: var(--primary-foreground);
+        }
+
+        .info-box {
+            background: hsla(262, 83%, 58%, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .info-box code {
+            background: var(--muted);
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-size: 0.8em;
         }
     </style>
 </head>
-<body data-signals="{name: 'Ada', age: 33, theme: 'light', sessionNote: '', throttleCount: 0, tab: 'cdn'}" data-persist="name, age, theme, sessionNote, throttleCount, tab">
+<body>
     <div class="container">
-        <div class="hero">
-            <h1>data-persist</h1>
-            <p>Persist Datastar signals to localStorage / sessionStorage</p>
+        <h1>data-persist</h1>
+        <p class="subtitle">Test page for the Datastar Persist Plugin</p>
+
+        <div class="info-box">
+            <strong>Instructions:</strong> Change values below, then refresh the page. 
+            Values should be restored from localStorage. Check the browser console for debug logs.
+            <br><br>
+            Storage key: <code>datastar</code> (default) or <code>datastar-{key}</code> for keyed persistence.
         </div>
 
-        <!-- Installation -->
-        <section class="section">
-            <h2>Installation</h2>
-            <div class="code">
-<pre><code class="language-javascript">&lt;script type="module"&gt;
-import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
-import PersistPlugin from 'https://cdn.jsdelivr.net/gh/ndendic/data-satellites@master/dist/min/persist.min.js';
+        <!-- Test 1: Single Signal Persistence -->
+        <section class="test-section" 
+                 data-signals="{counter: 0, name: 'Guest'}" 
+                 data-persist="counter, name">
+            <h2>Test 1: Specific Signals</h2>
+            <p>Persists only <code>counter</code> and <code>name</code> signals.</p>
+            
+            <div class="controls">
+                <button class="btn" data-on:click="$counter++">Increment Counter</button>
+                <button class="btn btn-outline" data-on:click="$counter = 0">Reset Counter</button>
+                <input type="text" data-bind:name placeholder="Enter your name">
+            </div>
 
-load(PersistPlugin);
-apply();
-&lt;/script&gt;</code></pre>
+            <div class="status">
+                <div class="status-row">
+                    <span class="status-label">Counter:</span>
+                    <span class="status-value" data-text="$counter"></span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Name:</span>
+                    <span class="status-value" data-text="$name"></span>
+                </div>
             </div>
         </section>
 
-        <!-- Basic Usage -->
-        <section class="section">
-            <h2>Basic Usage</h2>
-            <p class="muted">Boolean attribute persists all signals found on the page (via explicit list below and any discovered via <span class="badge">data-signals-*</span>).</p>
-
-            <div class="grid">
-                <div class="card">
-                    <h3>Profile</h3>
-                    <div class="row"><label for="name">Name</label></div>
-                    <div class="row"><input id="name" type="text" placeholder="Your name" data-bind="name"></div>
-                    <div class="row"><label for="age">Age</label></div>
-                    <div class="row"><input id="age" type="number" min="0" data-bind="age"></div>
-                    <div class="row"><span class="badge" data-text="`$name (${ $age })`"></span></div>
-                </div>
-
-                <div class="card">
-                    <h3>Theme</h3>
-                    <div class="row">
-                        <label>Current</label>
-                        <span class="badge" data-text="$theme"></span>
-                    </div>
-                    <div class="row">
-                        <button data-on-click="$theme = 'light'">Light</button>
-                        <button data-on-click="$theme = 'dark'">Dark</button>
-                    </div>
-                </div>
+        <!-- Test 2: Wildcard Persistence -->
+        <section class="test-section" 
+                 data-signals="{theme: 'light', fontSize: 16, showSidebar: true}" 
+                 data-persist>
+            <h2>Test 2: Wildcard (All Signals)</h2>
+            <p>Persists all signals in this section using <code>data-persist</code> without a value.</p>
+            
+            <div class="controls">
+                <select data-bind:theme>
+                    <option value="light">Light Theme</option>
+                    <option value="dark">Dark Theme</option>
+                    <option value="system">System Theme</option>
+                </select>
+                
+                <input type="number" data-bind:fontSize min="12" max="24" style="width: 80px;">
+                
+                <button class="btn" data-class-active="$showSidebar" 
+                        data-on:click="$showSidebar = !$showSidebar">
+                    Sidebar: <span data-text="$showSidebar ? 'ON' : 'OFF'"></span>
+                </button>
             </div>
 
-            <div class="code">
-<pre><code class="language-html">&lt;body data-signals="{name: 'Ada', age: 33, theme: 'light'}" data-persist&gt;
-    &lt;input data-on-input="$name = $event.target.value" data-value="$name" /&gt;
-    &lt;button data-on-click="$theme = 'dark'"&gt;Dark&lt;/button&gt;
-&lt;/body&gt;</code></pre>
+            <div class="status">
+                <div class="status-row">
+                    <span class="status-label">Theme:</span>
+                    <span class="status-value" data-text="$theme"></span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Font Size:</span>
+                    <span class="status-value" data-text="$fontSize + 'px'"></span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Show Sidebar:</span>
+                    <span class="status-value" data-text="$showSidebar"></span>
+                </div>
             </div>
         </section>
 
-        <!-- Namespaced Keys -->
-        <section class="section">
-            <h2>Namespaced Keys</h2>
-            <p class="muted">Use a suffix to isolate storage: <span class="badge">data-persist-profile</span> saves under a separate key.</p>
-
-            <div class="grid">
-                <div class="card" data-signals-notes="''" data-persist-profile="notes">
-                    <h3>Profile Notes (localStorage)</h3>
-                    <div class="row"><input type="text" placeholder="Add note" data-on-input="$notes = $event.target.value" data-value="$notes"></div>
-                    <div class="row"><span class="muted">Key: satellite-persist-profile</span></div>
-                </div>
-
-                <div class="card" data-signals-sessionNote="''" data-persist-session.session="sessionNote">
-                    <h3>Session Notes (sessionStorage)</h3>
-                    <div class="row"><input type="text" placeholder="Session-only value" data-on-input="$sessionNote = $event.target.value" data-value="$sessionNote"></div>
-                    <div class="row"><span class="muted">Key: satellite-persist-session (sessionStorage)</span></div>
-                </div>
+        <!-- Test 3: Keyed Persistence -->
+        <section class="test-section" 
+                 data-signals="{tabIndex: 0, expanded: false}" 
+                 data-persist:settings="tabIndex, expanded">
+            <h2>Test 3: Keyed Persistence</h2>
+            <p>Uses a custom storage key: <code>datastar-settings</code></p>
+            
+            <div class="controls">
+                <button class="btn" data-class-active="$tabIndex === 0" 
+                        data-on:click="$tabIndex = 0">Tab 1</button>
+                <button class="btn" data-class-active="$tabIndex === 1" 
+                        data-on:click="$tabIndex = 1">Tab 2</button>
+                <button class="btn" data-class-active="$tabIndex === 2" 
+                        data-on:click="$tabIndex = 2">Tab 3</button>
+                
+                <button class="btn btn-outline" data-on:click="$expanded = !$expanded">
+                    <span data-text="$expanded ? 'Collapse' : 'Expand'"></span>
+                </button>
             </div>
 
-<div class="code">
-<pre><code class="language-html">&lt;div data-signals-notes="''" data-persist-profile="notes"&gt;&lt;/div&gt;
-&lt;div data-signals-sessionNote="''" data-persist-session.session="sessionNote"&gt;&lt;/div&gt;</code></pre>
+            <div class="status">
+                <div class="status-row">
+                    <span class="status-label">Active Tab:</span>
+                    <span class="status-value" data-text="$tabIndex"></span>
+                </div>
+                <div class="status-row">
+                    <span class="status-label">Expanded:</span>
+                    <span class="status-value" data-text="$expanded"></span>
+                </div>
             </div>
         </section>
 
-        <!-- Attribute List vs Wildcard Discovery -->
-        <section class="section">
-            <h2>Explicit List vs Wildcard</h2>
-            <p class="muted">If a value is provided, only listed signals are persisted. Otherwise, all <span class="badge">data-signals-*</span> discoveries are persisted.</p>
+        <!-- Storage Viewer -->
+        <section class="test-section">
+            <h2>Storage Viewer</h2>
+            <p>Current localStorage contents for persist keys.</p>
 
-            <div class="grid">
-                <div class="card" data-signals-user_name="'Grace'" data-signals-user_email="'grace@example.com'" data-persist-account="user_name, user_email">
-                    <h3>Explicit List</h3>
-                    <div class="row"><input type="text" placeholder="Name" data-on-input="$user_name = $event.target.value" data-value="$user_name"></div>
-                    <div class="row"><input type="text" placeholder="Email" data-on-input="$user_email = $event.target.value" data-value="$user_email"></div>
-                    <div class="row"><span class="muted">Only name + email are stored</span></div>
-                </div>
-
-                <div class="card" data-signals-cart_total="0" data-signals-currency="'USD'" data-persist-cart>
-                    <h3>Wildcard</h3>
-                    <div class="row"><input type="number" min="0" step="1" data-on-input="$cart_total = Number($event.target.value)" data-value="$cart_total"></div>
-                    <div class="row">
-                        <button data-on-click="$currency = 'USD'">USD</button>
-                        <button data-on-click="$currency = 'EUR'">EUR</button>
-                    </div>
-                    <div class="row"><span class="muted">All discovered cart signals are stored</span></div>
-                </div>
+            <div class="storage-viewer">
+                <h3>datastar (default key)</h3>
+                <div class="storage-content" id="storage-default">Loading...</div>
             </div>
 
-            <div class="code">
-<pre><code class="language-html">&lt;div data-persist-account="user_name, user_email"&gt;&lt;/div&gt;
-&lt;div data-persist-cart&gt;&lt;/div&gt;</code></pre>
+            <div class="storage-viewer">
+                <h3>datastar-settings (keyed)</h3>
+                <div class="storage-content" id="storage-settings">Loading...</div>
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-outline" onclick="refreshStorage()">Refresh View</button>
+                <button class="btn btn-outline" onclick="clearAllStorage()">Clear All Storage</button>
+                <button class="btn" onclick="location.reload()">Reload Page</button>
             </div>
         </section>
-
-        <!-- Throttling -->
-        <section class="section">
-            <h2>Throttling</h2>
-            <p class="muted">Use <span class="badge">.immediate</span> for no debounce, or <span class="badge">__throttle.N</span> to debounce writes.</p>
-
-            <div class="grid">
-                <div class="card" data-signals-fast="''" data-persist-fast.immediate="fast">
-                    <h3>Immediate</h3>
-                    <div class="row"><input type="text" placeholder="Fast updates" data-on-input="$fast = $event.target.value" data-value="$fast"></div>
-                </div>
-
-                <div class="card" data-signals-slow="''" data-persist-slow__throttle.1000="slow">
-                    <h3>Debounced (1000ms)</h3>
-                    <div class="row"><input type="text" placeholder="Debounced updates" data-on-input="$slow = $event.target.value" data-value="$slow"></div>
-                </div>
-            </div>
-
-            <div class="code">
-<pre><code class="language-html">&lt;div data-persist-fast.immediate="fast"&gt;&lt;/div&gt;
-&lt;div data-persist-slow__throttle.1000="slow"&gt;&lt;/div&gt;</code></pre>
-            </div>
-        </section>
-
-        <!-- Storage Visibility -->
-        <section class="section">
-            <h2>Inspect Storage</h2>
-            <p class="muted">Values are stored under keys starting with <span class="badge">satellite-persist</span>. Refresh to verify persistence.</p>
-            <div class="card">
-                <div class="row"><button data-on-click="$throttleCount = $throttleCount + 1">Increment counter</button> <span class="badge" data-text="$throttleCount"></span></div>
-                <div class="row"><span class="muted">Open DevTools → Application → Storage to inspect.</span></div>
-            </div>
-        </section>
-
-        <!-- API Reference -->
-        <section class="section">
-            <h2>API Reference</h2>
-
-            <h3>Attributes</h3>
-            <div class="code">
-<pre><code class="language-html">&lt;!-- Persist all discovered signals (boolean attribute) --&gt;
-&lt;div data-persist&gt;&lt;/div&gt;
-
-&lt;!-- Persist only listed signals --&gt;
-&lt;div data-persist="name, age"&gt;&lt;/div&gt;
-
-&lt;!-- Namespaced key (stored as satellite-persist-profile) --&gt;
-&lt;div data-persist-profile="notes"&gt;&lt;/div&gt;
-
-&lt;!-- Session storage --&gt;
-&lt;div data-persist.session&gt;&lt;/div&gt;
-
-&lt;!-- Throttle writes (ms) --&gt;
-&lt;div data-persist__throttle.1000&gt;&lt;/div&gt;
-
-&lt;!-- Immediate writes (no debounce) --&gt;
-&lt;div data-persist.immediate&gt;&lt;/div&gt;</code></pre>
-            </div>
-        </section>
-
-        <footer>
-            <p>Built for <a href="https://data-star.dev">Datastar</a> •
-            <a href="https://github.com/ndendic/data-satellites">GitHub</a></p>
-        </footer>
     </div>
+
+    <script>
+        function refreshStorage() {
+            const defaultKey = localStorage.getItem('datastar');
+            const settingsKey = localStorage.getItem('datastar-settings');
+            
+            document.getElementById('storage-default').textContent = 
+                defaultKey ? JSON.stringify(JSON.parse(defaultKey), null, 2) : '(empty)';
+            document.getElementById('storage-settings').textContent = 
+                settingsKey ? JSON.stringify(JSON.parse(settingsKey), null, 2) : '(empty)';
+        }
+
+        function clearAllStorage() {
+            localStorage.removeItem('datastar');
+            localStorage.removeItem('datastar-settings');
+            refreshStorage();
+            console.log('[Test Page] Cleared all persist storage');
+        }
+
+        // Initial load and periodic refresh
+        refreshStorage();
+        setInterval(refreshStorage, 1000);
+    </script>
 </body>
 </html>
-
 

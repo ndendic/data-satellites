@@ -14,7 +14,7 @@ interface PersistConfig {
   isWildcard: boolean;
 }
 
-const DEFAULT_STORAGE_KEY = "satellite-persist";
+const DEFAULT_STORAGE_KEY = "datastar";
 const DEFAULT_THROTTLE = 500;
 
 function getStorage(isSession: boolean): Storage | null {
@@ -29,20 +29,36 @@ function getStorage(isSession: boolean): Storage | null {
   }
 }
 
-function parseConfig(key: string | null, value: string | null, mods: Map<string, any>): PersistConfig | null {
+function parseConfig(key: string | null, value: any, mods: Map<string, any>, el: HTMLElement): PersistConfig | null {
+  console.log('[Persist Plugin] parseConfig - key:', key, 'value:', value, 'type:', typeof value);
 
   const isSession = mods.has("session");
   const storage = getStorage(isSession);
   if (!storage) return null;
 
-  // v1.0.0-RC.3+: Custom keys come as data-persist-mykey, so the key is in ctx.key
+  // RC.6: Custom keys come as data-persist:mykey, so the key is in ctx.key
   const storageKey = key ? `${DEFAULT_STORAGE_KEY}-${key}` : DEFAULT_STORAGE_KEY;
 
   let signals: string[] = [];
   let isWildcard = false;
 
+  // Handle value - it might be evaluated or a raw string
+  // If the value looks like it was evaluated (not a simple identifier string), 
+  // we need to get the raw attribute value from the element
+  let rawValue = value;
+  
+  // If value is undefined/null or not a string that looks like signal names,
+  // try to get the raw attribute value
+  if (value === undefined || value === null || (typeof value !== 'string')) {
+    // Try to get raw attribute value from element
+    rawValue = el.getAttribute('data-persist') || el.getAttribute('data-persist:' + (key || '')) || '';
+    console.log('[Persist Plugin] Using raw attribute value:', rawValue);
+  }
+
   // Parse value for signals to persist
-  const trimmedValue = value?.trim();
+  const trimmedValue = typeof rawValue === 'string' ? rawValue.trim() : '';
+  console.log('[Persist Plugin] trimmedValue:', trimmedValue);
+  
   if (trimmedValue) {
     // If value is provided and not empty, parse it as comma-separated signals
     signals = trimmedValue
@@ -54,35 +70,52 @@ function parseConfig(key: string | null, value: string | null, mods: Map<string,
     isWildcard = true;
   }
 
+  console.log('[Persist Plugin] Parsed - signals:', signals, 'isWildcard:', isWildcard);
   return { storage, storageKey, signals, isWildcard };
 }
 
 function loadFromStorage(config: PersistConfig): void {
   try {
     const stored = config.storage.getItem(config.storageKey);
-    if (!stored) return;
+    console.log('[Persist Plugin] Loading from storage:', config.storageKey, 'stored:', stored);
+    
+    if (!stored) {
+      console.log('[Persist Plugin] No stored data found');
+      return;
+    }
 
     const data = JSON.parse(stored);
-    if (!data || typeof data !== "object") return;
-
-    beginBatch();
-    try {
-      if (config.isWildcard) {
-        mergePatch(data);
-      } else {
-        const patch = Object.fromEntries(
-          config.signals.filter((signal) => signal in data).map((signal) => [signal, data[signal]])
-        );
-
-        if (Object.keys(patch).length > 0) {
-          mergePatch(patch);
-        }
-      }
-    } finally {
-      endBatch();
+    console.log('[Persist Plugin] Parsed data:', data);
+    
+    if (!data || typeof data !== "object") {
+      console.log('[Persist Plugin] Invalid data format');
+      return;
     }
-  } catch {
-    // Storage errors are expected in some environments
+
+    // Delay the merge slightly to ensure Datastar has initialized signals
+    setTimeout(() => {
+      console.log('[Persist Plugin] Applying stored data:', data);
+      beginBatch();
+      try {
+        if (config.isWildcard) {
+          mergePatch(data);
+        } else {
+          const patch = Object.fromEntries(
+            config.signals.filter((signal) => signal in data).map((signal) => [signal, data[signal]])
+          );
+
+          console.log('[Persist Plugin] Filtered patch:', patch);
+          if (Object.keys(patch).length > 0) {
+            mergePatch(patch);
+          }
+        }
+      } finally {
+        endBatch();
+      }
+      console.log('[Persist Plugin] Data applied successfully');
+    }, 0);
+  } catch (err) {
+    console.error('[Persist Plugin] Error loading from storage:', err);
   }
 }
 
@@ -100,6 +133,24 @@ function getSignalsFromElement(el: HTMLElement): string[] {
     }
   }
 
+  // Also check for data-signals="{...}" syntax (inline JSON object)
+  const signalsAttr = el.getAttribute("data-signals");
+  if (signalsAttr) {
+    try {
+      // Try to parse as JSON-like object to extract keys
+      // Match patterns like {key1: value, key2: value}
+      const keyMatches = signalsAttr.matchAll(/(\w+)\s*:/g);
+      for (const match of keyMatches) {
+        if (match[1] && !signals.includes(match[1])) {
+          signals.push(match[1]);
+        }
+      }
+    } catch {
+      // Ignore parsing errors
+    }
+  }
+
+  console.log('[Persist Plugin] Detected signals from element:', signals);
   return signals;
 }
 
@@ -124,8 +175,15 @@ attribute({
   name: 'persist',
   requirement: 'optional',
   apply({ el, key, mods, value, error }) {
-    const config = parseConfig(key, value, mods);
-    if (!config) return;
+    console.log('[Persist Plugin] Applying to element:', el, 'key:', key, 'value:', value);
+    
+    const config = parseConfig(key, value, mods, el);
+    if (!config) {
+      console.warn('[Persist Plugin] Failed to parse config');
+      return;
+    }
+    
+    console.log('[Persist Plugin] Config:', config);
 
     loadFromStorage(config);
 
@@ -146,15 +204,18 @@ attribute({
     // Single-pass signal tracking with data collection
     const cleanup = effect(() => {
       const signals = config.isWildcard ? getSignalsFromElement(el) : config.signals;
+      console.log('[Persist Plugin] Effect running, tracking signals:', signals);
 
       const data: Record<string, any> = {};
 
       // Single pass: create dependencies and collect values
       for (const signal of signals) {
         try {
-          data[signal] = getPath(signal);
-        } catch {
-          // Signal doesn't exist, skip it
+          const value = getPath(signal);
+          data[signal] = value;
+          console.log('[Persist Plugin] Signal', signal, '=', value);
+        } catch (err) {
+          console.log('[Persist Plugin] Signal', signal, 'not found');
         }
       }
 
@@ -165,3 +226,5 @@ attribute({
     return cleanup;
   },
 });
+
+console.log('[Persist Plugin] Module loaded');
