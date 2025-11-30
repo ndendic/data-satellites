@@ -30,7 +30,7 @@ function getStorage(isSession: boolean): Storage | null {
 }
 
 function parseConfig(key: string | null, value: any, mods: Map<string, any>, el: HTMLElement): PersistConfig | null {
-  console.log('[Persist Plugin] parseConfig - key:', key, 'value:', value, 'type:', typeof value);
+  // console.log('[Persist Plugin] parseConfig - key:', key, 'value:', value, 'type:', typeof value);
 
   const isSession = mods.has("session");
   const storage = getStorage(isSession);
@@ -52,12 +52,12 @@ function parseConfig(key: string | null, value: any, mods: Map<string, any>, el:
   if (value === undefined || value === null || (typeof value !== 'string')) {
     // Try to get raw attribute value from element
     rawValue = el.getAttribute('data-persist') || el.getAttribute('data-persist:' + (key || '')) || '';
-    console.log('[Persist Plugin] Using raw attribute value:', rawValue);
+    // console.log('[Persist Plugin] Using raw attribute value:', rawValue);
   }
 
   // Parse value for signals to persist
   const trimmedValue = typeof rawValue === 'string' ? rawValue.trim() : '';
-  console.log('[Persist Plugin] trimmedValue:', trimmedValue);
+  // console.log('[Persist Plugin] trimmedValue:', trimmedValue);
   
   if (trimmedValue) {
     // If value is provided and not empty, parse it as comma-separated signals
@@ -70,31 +70,31 @@ function parseConfig(key: string | null, value: any, mods: Map<string, any>, el:
     isWildcard = true;
   }
 
-  console.log('[Persist Plugin] Parsed - signals:', signals, 'isWildcard:', isWildcard);
+  // console.log('[Persist Plugin] Parsed - signals:', signals, 'isWildcard:', isWildcard);
   return { storage, storageKey, signals, isWildcard };
 }
 
 function loadFromStorage(config: PersistConfig): void {
   try {
     const stored = config.storage.getItem(config.storageKey);
-    console.log('[Persist Plugin] Loading from storage:', config.storageKey, 'stored:', stored);
+    // console.log('[Persist Plugin] Loading from storage:', config.storageKey, 'stored:', stored);
     
     if (!stored) {
-      console.log('[Persist Plugin] No stored data found');
+      // console.log('[Persist Plugin] No stored data found');
       return;
     }
 
     const data = JSON.parse(stored);
-    console.log('[Persist Plugin] Parsed data:', data);
+    // console.log('[Persist Plugin] Parsed data:', data);
     
     if (!data || typeof data !== "object") {
-      console.log('[Persist Plugin] Invalid data format');
+      // console.log('[Persist Plugin] Invalid data format');
       return;
     }
 
     // Delay the merge slightly to ensure Datastar has initialized signals
     setTimeout(() => {
-      console.log('[Persist Plugin] Applying stored data:', data);
+      // console.log('[Persist Plugin] Applying stored data:', data);
       beginBatch();
       try {
         if (config.isWildcard) {
@@ -104,7 +104,7 @@ function loadFromStorage(config: PersistConfig): void {
             config.signals.filter((signal) => signal in data).map((signal) => [signal, data[signal]])
           );
 
-          console.log('[Persist Plugin] Filtered patch:', patch);
+          // console.log('[Persist Plugin] Filtered patch:', patch);
           if (Object.keys(patch).length > 0) {
             mergePatch(patch);
           }
@@ -112,10 +112,10 @@ function loadFromStorage(config: PersistConfig): void {
       } finally {
         endBatch();
       }
-      console.log('[Persist Plugin] Data applied successfully');
+      // console.log('[Persist Plugin] Data applied successfully');
     }, 0);
   } catch (err) {
-    console.error('[Persist Plugin] Error loading from storage:', err);
+    // console.error('[Persist Plugin] Error loading from storage:', err);
   }
 }
 
@@ -150,7 +150,7 @@ function getSignalsFromElement(el: HTMLElement): string[] {
     }
   }
 
-  console.log('[Persist Plugin] Detected signals from element:', signals);
+  // console.log('[Persist Plugin] Detected signals from element:', signals);
   return signals;
 }
 
@@ -175,15 +175,15 @@ attribute({
   name: 'persist',
   requirement: 'optional',
   apply({ el, key, mods, value, error }) {
-    console.log('[Persist Plugin] Applying to element:', el, 'key:', key, 'value:', value);
+    // console.log('[Persist Plugin] Applying to element:', el, 'key:', key, 'value:', value);
     
     const config = parseConfig(key, value, mods, el);
     if (!config) {
-      console.warn('[Persist Plugin] Failed to parse config');
+      // console.warn('[Persist Plugin] Failed to parse config');
       return;
     }
     
-    console.log('[Persist Plugin] Config:', config);
+    // console.log('[Persist Plugin] Config:', config);
 
     loadFromStorage(config);
 
@@ -204,7 +204,7 @@ attribute({
     // Single-pass signal tracking with data collection
     const cleanup = effect(() => {
       const signals = config.isWildcard ? getSignalsFromElement(el) : config.signals;
-      console.log('[Persist Plugin] Effect running, tracking signals:', signals);
+      // console.log('[Persist Plugin] Effect running, tracking signals:', signals);
 
       const data: Record<string, any> = {};
 
@@ -213,9 +213,9 @@ attribute({
         try {
           const value = getPath(signal);
           data[signal] = value;
-          console.log('[Persist Plugin] Signal', signal, '=', value);
+          // console.log('[Persist Plugin] Signal', signal, '=', value);
         } catch (err) {
-          console.log('[Persist Plugin] Signal', signal, 'not found');
+          // console.log('[Persist Plugin] Signal', signal, 'not found');
         }
       }
 
@@ -227,4 +227,4 @@ attribute({
   },
 });
 
-console.log('[Persist Plugin] Module loaded');
+// console.log('[Persist Plugin] Module loaded');
