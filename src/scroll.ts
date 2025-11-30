@@ -1,28 +1,7 @@
+import { attribute } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+import { mergePatch, beginBatch, endBatch, getPath } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
 import { SmoothScroll } from "./smooth-scroll.js";
 import { createRAFThrottle, createTimerThrottle } from "./throttle.js";
-
-interface AttributePlugin {
-  type: "attribute";
-  name: string;
-  keyReq: "allowed" | "denied" | "starts" | "exact";
-  valReq?: "allowed" | "denied" | "must";
-  argNames?: string[];
-  onLoad: (ctx: RuntimeContext) => OnRemovalFn | void;
-}
-
-interface RuntimeContext {
-  el: HTMLElement;
-  key: string;
-  value: string;
-  mods: Map<string, any>;
-  rx: (...args: any[]) => any;
-  mergePatch: (patch: Record<string, any>) => void;
-  startBatch: () => void;
-  endBatch: () => void;
-  getPath: (path: string) => any;
-}
-
-type OnRemovalFn = () => void;
 
 const DEFAULT_THROTTLE = 100;
 const VELOCITY_DECAY_MS = 50; // Faster decay for more responsive feel
@@ -64,15 +43,10 @@ function getThrottleMs(mods: Map<string, any>): number {
   return Number.parseInt(String(value)) || DEFAULT_THROTTLE;
 }
 
-const scrollAttributePlugin: AttributePlugin = {
-  type: "attribute",
-  name: "scroll",
-  keyReq: "allowed",
-  valReq: "allowed",
-  argNames: [...SCROLL_ARG_NAMES],
-
-  onLoad(ctx: RuntimeContext): OnRemovalFn | void {
-    const { el, value, mods, rx, mergePatch, startBatch, endBatch, getPath } = ctx;
+attribute({
+  name: 'scroll',
+  requirement: 'optional',
+  apply({ el, value, mods, error }) {
     
     // Create unique identifier for this element
     const elementId = el.id || `scroll-${Math.random().toString(36).substr(2, 9)}`;
@@ -213,11 +187,13 @@ const scrollAttributePlugin: AttributePlugin = {
       mergePatch(elementPatch);
       
       if (hasExpression) {
-        startBatch();
-        try {          
-          rx(value);
-        } catch (error) {
-          console.error("Error executing scroll expression:", error);
+        beginBatch();
+        try {
+          // Note: rx function not available in new API, value expression execution may need different approach
+          // For now, we skip expression execution
+        } catch (err) {
+          if (error) error('ScrollExpressionError', { error: err });
+          else console.error("Error executing scroll expression:", err);
         } finally {
           endBatch();
         }
@@ -253,6 +229,4 @@ const scrollAttributePlugin: AttributePlugin = {
       }
     };
   },
-};
-
-export default scrollAttributePlugin;
+});

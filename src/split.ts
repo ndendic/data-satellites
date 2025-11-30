@@ -1,26 +1,6 @@
+import { attribute } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+import { effect, getPath, mergePatch, beginBatch, endBatch } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
 import { createDebounce, createRAFThrottle, createTimerThrottle } from "./throttle.js";
-
-interface AttributePlugin {
-  type: "attribute";
-  name: string;
-  keyReq: "starts" | "exact" | "allowed";
-  valReq?: "allowed";
-  argNames?: string[];
-  onLoad: (ctx: RuntimeContext) => (() => void) | void;
-}
-
-interface RuntimeContext {
-  el: HTMLElement;
-  key: string;
-  value: string;
-  mods: Map<string, any>;
-  rx: (...args: any[]) => any;
-  effect: (fn: () => void) => () => void;
-  mergePatch: (patch: Record<string, any>) => void;
-  getPath: (path: string) => any;
-  startBatch: () => void;
-  endBatch: () => void;
-}
 
 interface SplitConfig {
   signal: string;
@@ -237,7 +217,7 @@ function calculateSplitSizes(
   return [size1, 100 - size1];
 }
 
-function setupDragHandling(state: SplitState, ctx: RuntimeContext): void {
+function setupDragHandling(state: SplitState, mergePatchFn: (patch: Record<string, any>) => void, beginBatchFn: () => void, endBatchFn: () => void): void {
   const { handle, container, signal, minSize } = state;
   let startSizes: number[] = [];
   let containerSize = 0;
@@ -250,9 +230,9 @@ function setupDragHandling(state: SplitState, ctx: RuntimeContext): void {
     state.sizes = newSizes;
     setCSS(container, signal, newSizes);
 
-    ctx.startBatch();
-    ctx.mergePatch({ [`${signal}_sizes`]: newSizes });
-    ctx.endBatch();
+    beginBatchFn();
+    mergePatchFn({ [`${signal}_sizes`]: newSizes });
+    endBatchFn();
   });
 
   const startDrag = createDragHandler(
@@ -294,7 +274,9 @@ function setupDragHandling(state: SplitState, ctx: RuntimeContext): void {
 function setupResponsiveHandling(
   state: SplitState,
   config: SplitConfig,
-  ctx: RuntimeContext
+  mergePatchFn: (patch: Record<string, any>) => void,
+  beginBatchFn: () => void,
+  endBatchFn: () => void
 ): (() => void) | null {
   if (!config.responsive) return null;
 
@@ -310,9 +292,9 @@ function setupResponsiveHandling(
       initializeElements(container, handle, newDirection, signal);
       stylePanels(panels, newDirection, signal, sizes, minSize);
 
-      ctx.startBatch();
-      ctx.mergePatch({ [`${signal}_direction`]: newDirection });
-      ctx.endBatch();
+      beginBatchFn();
+      mergePatchFn({ [`${signal}_direction`]: newDirection });
+      endBatchFn();
     }
   }, 150);
 
@@ -320,7 +302,11 @@ function setupResponsiveHandling(
   return () => window.removeEventListener("resize", handleResize);
 }
 
-function detectAndCreateCornerHandles(ctx: RuntimeContext): boolean {
+function detectAndCreateCornerHandles(
+  effectFn: (fn: () => void) => () => void,
+  getPathFn: (path: string) => any,
+  mergePatchFn: (patch: Record<string, any>) => void
+): boolean {
   const allSplits = [...splits.values()];
   const hSplits = allSplits.filter((s) => s.direction === "horizontal");
   const vSplits = allSplits.filter((s) => s.direction === "vertical");
@@ -341,7 +327,7 @@ function detectAndCreateCornerHandles(ctx: RuntimeContext): boolean {
         hRect.bottom >= vRect.top - SIZES.tolerance;
 
       if (overlaps) {
-        createCornerHandle(h, v, hRect, vRect, ctx);
+        createCornerHandle(h, v, hRect, vRect, effectFn, getPathFn, mergePatchFn);
       }
     }
   }
@@ -353,7 +339,9 @@ function createCornerHandle(
   v: SplitState,
   hRect: DOMRect,
   vRect: DOMRect,
-  ctx: RuntimeContext
+  effectFn: (fn: () => void) => () => void,
+  getPathFn: (path: string) => any,
+  mergePatchFn: (patch: Record<string, any>) => void
 ): void {
   const corner = document.createElement("div");
   const key = `${h.signal}-${v.signal}`;
@@ -377,11 +365,11 @@ function createCornerHandle(
   const cornerHandle: CornerHandle = { element: corner, horizontalSplit: h, verticalSplit: v };
   corners.set(key, cornerHandle);
 
-  setupCornerDragHandling(cornerHandle, ctx);
+  setupCornerDragHandling(cornerHandle, mergePatchFn, beginBatchFn, endBatchFn);
 
-  ctx.effect(() => {
-    const hSizes = ctx.getPath(`${h.signal}_sizes`);
-    const vSizes = ctx.getPath(`${v.signal}_sizes`);
+  effectFn(() => {
+    const hSizes = getPathFn(`${h.signal}_sizes`);
+    const vSizes = getPathFn(`${v.signal}_sizes`);
     if (hSizes || vSizes) {
       requestAnimationFrame(() => {
         updateCornerPosition(corner, getCachedRect(h.handle), getCachedRect(v.handle));
@@ -395,7 +383,12 @@ function updateCornerPosition(element: HTMLElement, hRect: DOMRect, vRect: DOMRe
   element.style.top = `${vRect.top + vRect.height / 2 - SIZES.corner / 2}px`;
 }
 
-function setupCornerDragHandling(corner: CornerHandle, ctx: RuntimeContext): void {
+function setupCornerDragHandling(
+  corner: CornerHandle,
+  mergePatchFn: (patch: Record<string, any>) => void,
+  beginBatchFn: () => void,
+  endBatchFn: () => void
+): void {
   const { element, horizontalSplit: h, verticalSplit: v } = corner;
   let startPos = { x: 0, y: 0 };
   let startSizes = { h: [...h.sizes], v: [...v.sizes] };
@@ -406,22 +399,23 @@ function setupCornerDragHandling(corner: CornerHandle, ctx: RuntimeContext): voi
     split: SplitState,
     delta: number,
     containerSize: number,
-    startSize: number[]
+    startSize: number[],
+    mergePatchFn: (patch: Record<string, any>) => void
   ) => {
     const sizes = calculateSplitSizes(delta, containerSize, startSize, split.minSize);
     split.sizes = sizes;
     setCSS(split.container, split.signal, sizes);
-    ctx.mergePatch({ [`${split.signal}_sizes`]: sizes });
+    mergePatchFn({ [`${split.signal}_sizes`]: sizes });
     return sizes;
   };
 
   const updateBothSplits = createRAFThrottle((deltaX: number, deltaY: number) => {
     if (!isDragging) return;
 
-    ctx.startBatch();
-    updateSplit(h, deltaX, containerSizes.h, startSizes.h);
-    updateSplit(v, deltaY, containerSizes.v, startSizes.v);
-    ctx.endBatch();
+    beginBatchFn();
+    updateSplit(h, deltaX, containerSizes.h, startSizes.h, mergePatchFn);
+    updateSplit(v, deltaY, containerSizes.v, startSizes.v, mergePatchFn);
+    endBatchFn();
 
     requestAnimationFrame(() => {
       updateCornerPosition(element, getCachedRect(h.handle), getCachedRect(v.handle));
@@ -464,15 +458,14 @@ function setupCornerDragHandling(corner: CornerHandle, ctx: RuntimeContext): voi
   element.addEventListener("touchstart", startDrag, { passive: false });
 }
 
-const splitAttributePlugin: AttributePlugin = {
-  type: "attribute",
-  name: "split",
-  keyReq: "allowed",
-  valReq: "allowed",
-  argNames: getSplitArgNames(),
+export function setConfig(config: any) {
+  (window as any).__starhtml_split_config = { ...getGlobalConfig(), ...config };
+}
 
-  onLoad(ctx: RuntimeContext): (() => void) | void {
-    const { el: handle, value } = ctx;
+attribute({
+  name: 'split',
+  requirement: 'optional',
+  apply({ el: handle, value, error }) {
     const config = parseSplitValue(value);
     if (!config || handle.dataset.splitInit === "true") return;
 
@@ -509,18 +502,18 @@ const splitAttributePlugin: AttributePlugin = {
     };
     splits.set(handle, state);
 
-    ctx.startBatch();
-    ctx.mergePatch({
+    beginBatch();
+    mergePatch({
       [`${signal}_sizes`]: sizes,
       [`${signal}_direction`]: currentDirection,
     });
-    ctx.endBatch();
+    endBatch();
 
-    setupDragHandling(state, ctx);
-    const resizeCleanup = setupResponsiveHandling(state, globalConfig, ctx);
+    setupDragHandling(state, mergePatch, beginBatch, endBatch);
+    const resizeCleanup = setupResponsiveHandling(state, globalConfig, mergePatch, beginBatch, endBatch);
 
     let cornerCleanup: (() => void) | null = null;
-    const hasCorners = detectAndCreateCornerHandles(ctx);
+    const hasCorners = detectAndCreateCornerHandles(effect, getPath, mergePatch);
     if (hasCorners) {
       const updateCornerPositions = createDebounce(() => {
         for (const { horizontalSplit: h, verticalSplit: v, element } of corners.values()) {
@@ -531,8 +524,8 @@ const splitAttributePlugin: AttributePlugin = {
       cornerCleanup = () => window.removeEventListener("resize", updateCornerPositions);
     }
 
-    const effectCleanup = ctx.effect(() => {
-      const currentSizes = ctx.getPath(`${signal}_sizes`);
+    const effectCleanup = effect(() => {
+      const currentSizes = getPath(`${signal}_sizes`);
       if (currentSizes?.length && !arraysEqual(currentSizes, state.sizes)) {
         state.sizes = currentSizes;
         setCSS(container, signal, currentSizes);
@@ -556,19 +549,8 @@ const splitAttributePlugin: AttributePlugin = {
       handle.dataset.splitInit = "false";
     };
   },
-};
+});
 
 function arraysEqual(a: number[], b: number[], threshold = 0.01): boolean {
   return a.length === b.length && a.every((val, i) => Math.abs(val - b[i]) < threshold);
 }
-
-const splitPlugin = {
-  ...splitAttributePlugin,
-  setConfig(config: any) {
-    (window as any).__starhtml_split_config = { ...getGlobalConfig(), ...config };
-    const signal = config?.signal ? String(config.signal) : "split";
-    (this as any).argNames = getSplitArgNames(signal);
-  },
-};
-
-export default splitPlugin;

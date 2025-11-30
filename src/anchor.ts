@@ -13,28 +13,13 @@
  * - Fallback for unsupported browsers
  */
 
-interface AttributePlugin {
-  type: "attribute";
-  name: string;
-  keyReq: "allowed" | "denied" | "starts" | "exact";
-  valReq?: "allowed" | "denied" | "must";
-  shouldEvaluate?: boolean;
-  onLoad: (ctx: RuntimeContext) => OnRemovalFn | void;
-}
+// Import attribute function - this will auto-register the plugin when module loads
+import { attribute } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
 
-interface RuntimeContext {
-  el: HTMLElement;
-  key: string;
-  value: string;
-  mods: Map<string, any>;
-  effect: (fn: () => void) => () => void;
-  getPath: (path: string) => any;
-  mergePatch: (patch: Record<string, any>) => void;
-  startBatch: () => void;
-  endBatch: () => void;
+// Debug: verify attribute function is available
+if (typeof attribute !== 'function') {
+  console.error('Datastar Anchor Plugin: attribute function not available! Make sure Datastar is loaded first.');
 }
-
-type OnRemovalFn = () => void;
 
 // CSS Anchor positioning support detection
 const supportsCSSAnchor = (): boolean => {
@@ -178,7 +163,7 @@ const getAnchorCSS = (anchorName: string, placement: string, offsetValue: number
 };
 
 // Simple fallback positioning for browsers without CSS anchor support
-const applyFallbackPositioning = (el: HTMLElement, target: HTMLElement, placement: string, offsetValue: number, offsetUnit: string): OnRemovalFn => {
+const applyFallbackPositioning = (el: HTMLElement, target: HTMLElement, placement: string, offsetValue: number, offsetUnit: string): (() => void) => {
   const updatePosition = () => {
     const targetRect = target.getBoundingClientRect();
     
@@ -294,18 +279,25 @@ const applyFallbackPositioning = (el: HTMLElement, target: HTMLElement, placemen
   };
 };
 
-export default {
-  type: "attribute",
-  name: "anchor",
-  keyReq: "exact",
-
-  onLoad({ el, value }: RuntimeContext): OnRemovalFn | void {
-    const { target, placement, offsetValue, offsetUnit } = parseAnchorConfig(el, value);
-    
-    if (!target) {
-      console.warn('Datastar Anchor: No target specified');
-      return;
-    }
+// Register the anchor plugin
+try {
+  attribute({
+    name: 'anchor',
+    requirement: 'exclusive',
+    apply({ el, value, error }) {
+      // Debug: log the value we receive
+      console.log('[Anchor Plugin] Applied to element:', el, 'value:', value, 'type:', typeof value);
+      
+      // Value might be evaluated, so handle both string and evaluated cases
+      const valueStr = typeof value === 'string' ? value : String(value || '');
+      const { target, placement, offsetValue, offsetUnit } = parseAnchorConfig(el, valueStr);
+      
+      console.log('[Anchor Plugin] Parsed config:', { target, placement, offsetValue, offsetUnit });
+      
+      if (!target) {
+        console.warn('[Anchor Plugin] No target specified, value was:', valueStr);
+        return;
+      }
     
     // Find target element
     let targetElement: HTMLElement | null = null;
@@ -343,4 +335,8 @@ export default {
       return applyFallbackPositioning(el, targetElement, placement, offsetValue, offsetUnit);
     }
   },
-} satisfies AttributePlugin;
+  });
+  console.log('[Anchor Plugin] Successfully registered');
+} catch (err) {
+  console.error('[Anchor Plugin] Failed to register:', err);
+}

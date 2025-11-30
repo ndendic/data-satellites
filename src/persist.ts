@@ -3,30 +3,9 @@
  * Handles data-persist attributes for automatic signal persistence to storage
  */
 
+import { attribute } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+import { effect, getPath, mergePatch, beginBatch, endBatch } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
 import { createDebounce } from "./throttle.js";
-
-interface AttributePlugin {
-  type: "attribute";
-  name: string;
-  keyReq: "allowed" | "denied" | "starts" | "exact";
-  valReq?: "allowed" | "denied" | "must";
-  shouldEvaluate?: boolean;
-  onLoad: (ctx: RuntimeContext) => OnRemovalFn | void;
-}
-
-interface RuntimeContext {
-  el: HTMLElement;
-  key: string;
-  value: string;
-  mods: Map<string, any>;
-  effect: (fn: () => void) => () => void;
-  getPath: (path: string) => any;
-  mergePatch: (patch: Record<string, any>) => void;
-  startBatch: () => void;
-  endBatch: () => void;
-}
-
-type OnRemovalFn = () => void;
 
 interface PersistConfig {
   storage: Storage;
@@ -50,8 +29,7 @@ function getStorage(isSession: boolean): Storage | null {
   }
 }
 
-function parseConfig(ctx: RuntimeContext): PersistConfig | null {
-  const { key, value, mods } = ctx;
+function parseConfig(key: string | null, value: string | null, mods: Map<string, any>): PersistConfig | null {
 
   const isSession = mods.has("session");
   const storage = getStorage(isSession);
@@ -79,7 +57,7 @@ function parseConfig(ctx: RuntimeContext): PersistConfig | null {
   return { storage, storageKey, signals, isWildcard };
 }
 
-function loadFromStorage(config: PersistConfig, ctx: RuntimeContext): void {
+function loadFromStorage(config: PersistConfig): void {
   try {
     const stored = config.storage.getItem(config.storageKey);
     if (!stored) return;
@@ -87,21 +65,21 @@ function loadFromStorage(config: PersistConfig, ctx: RuntimeContext): void {
     const data = JSON.parse(stored);
     if (!data || typeof data !== "object") return;
 
-    ctx.startBatch();
+    beginBatch();
     try {
       if (config.isWildcard) {
-        ctx.mergePatch(data);
+        mergePatch(data);
       } else {
         const patch = Object.fromEntries(
           config.signals.filter((signal) => signal in data).map((signal) => [signal, data[signal]])
         );
 
         if (Object.keys(patch).length > 0) {
-          ctx.mergePatch(patch);
+          mergePatch(patch);
         }
       }
     } finally {
-      ctx.endBatch();
+      endBatch();
     }
   } catch {
     // Storage errors are expected in some environments
@@ -111,11 +89,11 @@ function loadFromStorage(config: PersistConfig, ctx: RuntimeContext): void {
 function getSignalsFromElement(el: HTMLElement): string[] {
   const signals: string[] = [];
 
-  // Scan all attributes for data-signals-* pattern
+  // Scan all attributes for data-signals:* pattern (RC.6 uses : delimiter)
   for (const attr of el.attributes) {
-    if (attr.name.startsWith("data-signals-")) {
-      // Extract signal name from attribute name: data-signals-mySignal -> mySignal
-      const signalName = attr.name.substring("data-signals-".length);
+    if (attr.name.startsWith("data-signals:")) {
+      // Extract signal name from attribute name: data-signals:mySignal -> mySignal
+      const signalName = attr.name.substring("data-signals:".length);
       if (signalName) {
         signals.push(signalName);
       }
@@ -127,7 +105,6 @@ function getSignalsFromElement(el: HTMLElement): string[] {
 
 function saveToStorage(
   config: PersistConfig,
-  _ctx: RuntimeContext,
   signalData: Record<string, any>
 ): void {
   try {
@@ -143,43 +120,39 @@ function saveToStorage(
   }
 }
 
-const persistAttributePlugin: AttributePlugin = {
-  type: "attribute",
-  name: "persist",
-  keyReq: "allowed",
-  valReq: "allowed",
-  shouldEvaluate: false,
-
-  onLoad(ctx: RuntimeContext): OnRemovalFn | void {
-    const config = parseConfig(ctx);
+attribute({
+  name: 'persist',
+  requirement: 'optional',
+  apply({ el, key, mods, value, error }) {
+    const config = parseConfig(key, value, mods);
     if (!config) return;
 
-    loadFromStorage(config, ctx);
+    loadFromStorage(config);
 
-    const throttleMs = ctx.mods.has("immediate")
+    const throttleMs = mods.has("immediate")
       ? 0
-      : Number.parseInt(String(ctx.mods.get("throttle") ?? DEFAULT_THROTTLE));
+      : Number.parseInt(String(mods.get("throttle") ?? DEFAULT_THROTTLE));
 
     let cachedSignalData: Record<string, any> = {};
 
     const persistData = () => {
       if (Object.keys(cachedSignalData).length > 0) {
-        saveToStorage(config, ctx, cachedSignalData);
+        saveToStorage(config, cachedSignalData);
       }
     };
 
     const throttledPersist = throttleMs > 0 ? createDebounce(persistData, throttleMs) : persistData;
 
     // Single-pass signal tracking with data collection
-    const cleanup = ctx.effect(() => {
-      const signals = config.isWildcard ? getSignalsFromElement(ctx.el) : config.signals;
+    const cleanup = effect(() => {
+      const signals = config.isWildcard ? getSignalsFromElement(el) : config.signals;
 
       const data: Record<string, any> = {};
 
       // Single pass: create dependencies and collect values
       for (const signal of signals) {
         try {
-          data[signal] = ctx.getPath(signal);
+          data[signal] = getPath(signal);
         } catch {
           // Signal doesn't exist, skip it
         }
@@ -191,6 +164,4 @@ const persistAttributePlugin: AttributePlugin = {
 
     return cleanup;
   },
-};
-
-export default persistAttributePlugin;
+});

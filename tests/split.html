@@ -11,19 +11,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <script type="module">
-        import { load, apply } from 'https://cdn.jsdelivr.net/gh/starfederation/datastar@main/bundles/datastar.js';
-        import SplitPlugin from '../dist/min/split.min.js';
-        import PersistPlugin from '../dist/min/persist.min.js';
+        import 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
+        import { setConfig } from '../dist/min/split.min.js';
+        import '../dist/min/persist.min.js';
+        import '../dist/min/split.min.js';
         
-        SplitPlugin.setConfig({
+        setConfig({
             signal: 'split',
             defaultMinSize: 10,
             responsive: false,
             responsiveBreakpoint: 768
         });
-        
-        load(SplitPlugin, PersistPlugin);
-        apply();
     </script>
 
     <script>
