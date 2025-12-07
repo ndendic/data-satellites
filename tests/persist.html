@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-count="$counter">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,7 @@
 
     <script type="module">
         import 'https://cdn.jsdelivr.net/gh/starfederation/datastar@develop/bundles/datastar.js';
-        import '../dist/min/persist.min.js';
+        import '/dist/min/persist.min.js';
     </script>
 
     <style>
@@ -226,7 +226,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" data-init="document.documentElement.setAttribute('data-count', $counter);">
         <h1>data-persist</h1>
         <p class="subtitle">Test page for the Datastar Persist Plugin</p>
 

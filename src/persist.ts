@@ -92,28 +92,26 @@ function loadFromStorage(config: PersistConfig): void {
       return;
     }
 
-    // Delay the merge slightly to ensure Datastar has initialized signals
-    setTimeout(() => {
-      // console.log('[Persist Plugin] Applying stored data:', data);
-      beginBatch();
-      try {
-        if (config.isWildcard) {
-          mergePatch(data);
-        } else {
-          const patch = Object.fromEntries(
-            config.signals.filter((signal) => signal in data).map((signal) => [signal, data[signal]])
-          );
+    // Apply stored data synchronously (like core Datastar does)
+    // console.log('[Persist Plugin] Applying stored data:', data);
+    beginBatch();
+    try {
+      if (config.isWildcard) {
+        mergePatch(data);
+      } else {
+        const patch = Object.fromEntries(
+          config.signals.filter((signal) => signal in data).map((signal) => [signal, data[signal]])
+        );
 
-          // console.log('[Persist Plugin] Filtered patch:', patch);
-          if (Object.keys(patch).length > 0) {
-            mergePatch(patch);
-          }
+        // console.log('[Persist Plugin] Filtered patch:', patch);
+        if (Object.keys(patch).length > 0) {
+          mergePatch(patch);
         }
-      } finally {
-        endBatch();
       }
-      // console.log('[Persist Plugin] Data applied successfully');
-    }, 0);
+    } finally {
+      endBatch();
+    }
+    // console.log('[Persist Plugin] Data applied successfully');
   } catch (err) {
     // console.error('[Persist Plugin] Error loading from storage:', err);
   }
